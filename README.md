@@ -4,6 +4,8 @@ Working project for analyzing the Lichess open database from raw PGN exports thr
 
 Primary source: https://database.lichess.org/
 
+Project governance: see `docs/governance.md`.
+
 ## Current Direction
 
 - Start with standard rated games.
@@ -20,4 +22,3 @@ Primary source: https://database.lichess.org/
 - `src/`: ingestion, parsing, profiling, and transformation code.
 - `sql/`: warehouse DDL and load scripts.
 - `powerbi/`: future Power BI model/report artifacts.
-
