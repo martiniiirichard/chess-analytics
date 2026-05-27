@@ -49,8 +49,8 @@ The source natural key is the Lichess game id derived from the `Site` PGN header
 | `BlackElo` | `black_elo_raw` | string | Convert to `black_elo` integer | Keep transformed | Strip/parse integer | Integer or unknown sentinel | Add rating band later |
 | `WhiteRatingDiff` | `white_rating_diff_raw` | string | Drop from Gold for now | Bronze only | Preserve raw value | Optional signed integer if present | Not needed for current analysis |
 | `BlackRatingDiff` | `black_rating_diff_raw` | string | Drop from Gold for now | Bronze only | Preserve raw value | Optional signed integer if present | Not needed for current analysis |
-| `ECO` | `eco_code` | string | Replace with `eco_key` | Dimension | Preserve code; load `dim_eco` | Code pattern should be profiled, not assumed | ECO is a hierarchy level above opening variation |
-| `Opening` | `opening_name` | string | Replace with `opening_variation_key` | Dimension | Preserve raw text; load `dim_opening_variation` | Not blank rate should be tracked | Long text should not live in game fact |
+| `ECO` | `eco_code` | string | Replace with `eco_key` | Dimension | Preserve code; load `dim_eco` | Code pattern should be profiled, not assumed | ECO is the stable parent opening classification |
+| `Opening` | `opening_name` | string | Replace with `opening_variation_key` | Dimension | Preserve raw Lichess text; load `dim_opening_variation` | Not blank rate should be tracked | Lichess is authoritative for observed variation labels |
 | `TimeControl` | `time_control_raw` | string | Replace with `time_control_key`; keep parsed numeric fields if useful | Dimension | Parse initial/increment/delay/correspondence patterns | Known pattern or quarantine/unknown | Needs more profiling across months |
 | `Termination` | `termination_raw` | string | Candidate `termination_key` | Dimension candidate | Preserve raw value; profile distinct values | Known value or unknown bucket | 2013-01 only showed `Normal` and `Time forfeit` |
 | derived | `source_month` | string | Keep | Keep | From source file/month | Must match ingestion manifest | Partition and lineage column |
@@ -63,8 +63,8 @@ The source natural key is the Lichess game id derived from the `Site` PGN header
 |---|---|---|---|
 | `dim_player` | One row per distinct Lichess player name or player id | `white_player_key`, `black_player_key` | Role-playing dimension; may need bot/closed-account handling later |
 | `dim_result` | One row per game result code | `result_key` | Avoids magic numbers and stores white/black scores |
-| `dim_eco` | One row per ECO code | `eco_key` | Parent of opening variation |
-| `dim_opening_variation` | One row per distinct opening variation under an ECO code | `opening_variation_key` | Connects to `dim_eco`; keeps long text out of fact |
+| `dim_eco` | One row per ECO code | `eco_key` | Stable parent opening classification |
+| `dim_opening_variation` | One row per distinct Lichess opening variation under an ECO code | `opening_variation_key` | Connects to `dim_eco`; keeps long text out of fact |
 | `dim_time_control` | One row per distinct parsed time control pattern | `time_control_key` | Stores raw value, initial seconds, increment seconds, delay seconds, type, and class |
 | `dim_termination` | One row per termination value | `termination_key` | Keep candidate until more months are profiled |
 | `dim_date` | One row per calendar date | `date_key` | Optional, but likely useful for Power BI |
@@ -81,6 +81,37 @@ For `600+8`:
 | `time_control_type` | `increment` |
 
 Open issue: confirm whether Lichess PGN exports encode delay time controls differently or at all.
+
+## Opening Modeling Notes
+
+ECO is treated as the stable parent opening classification.
+
+Lichess `Opening` is treated as the authoritative source for observed opening variation labels in this dataset.
+
+External ECO references may enrich `dim_eco`, but should not overwrite Lichess variation names unless a reviewed mapping rule exists.
+
+Initial hierarchy:
+
+```text
+dim_eco -> dim_opening_variation -> fact_game
+```
+
+Proposed dimension attributes:
+
+```text
+dim_eco
+- eco_key
+- eco_code
+- eco_volume
+- parent_opening_name
+
+dim_opening_variation
+- opening_variation_key
+- eco_key
+- lichess_opening_name
+- normalized_opening_name
+- mapping_status
+```
 
 ## Derived Validation Candidates
 

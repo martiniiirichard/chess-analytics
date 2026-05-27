@@ -45,6 +45,7 @@ For code or file edits, include clickable file references and avoid vague summar
 - Add aggregate facts only after repeated query patterns justify them.
 - Preserve raw source files in Landing and derive Bronze/Silver/Gold outputs through reproducible code.
 - Make metric definitions explicit before building report measures.
+- When metrics can change ingestion grain, storage strategy, or semantic model shape, define the metric contract before implementing pipelines.
 
 ## Data Project Workflow Reality
 
