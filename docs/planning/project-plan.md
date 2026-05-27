@@ -25,7 +25,8 @@ The first milestone should produce:
 
 - A short project charter.
 - A data profiling report from 2013-01.
-- A source-to-target draft for game and move facts.
+- A source-to-target draft for `fact_game`.
+- A later source-to-target draft for `fact_move` after the game-grain contract is stable.
 - A first-pass metric dictionary.
 - A small Power BI-ready analytical extract, likely Parquet or SQL tables.
 
@@ -68,8 +69,8 @@ Phase 1 is done when we can explain:
 | CHESS-003 | Confirm parser stack | Python can read zstd stream and parse PGN games programmatically |
 | CHESS-004 | Profile game headers | Counts and null rates for headers like Result, ECO, Opening, TimeControl, Elo, Termination |
 | CHESS-005 | Profile moves | Move counts, parse failures, legal move reconstruction, comments/evals availability |
-| CHESS-006 | Draft game fact schema | One-row-per-game target columns and keys documented |
-| CHESS-007 | Draft move fact schema | One-row-per-ply target columns and keys documented |
+| CHESS-006 | Draft game fact source-to-target | One-row-per-game source fields, transformations, candidate dimensions, and validation candidates documented |
+| CHESS-007 | Draft move fact source-to-target | One-row-per-ply target columns and keys documented after game-grain mapping is reviewed |
 | CHESS-008 | Define time-control classes | Bullet/blitz/rapid/classical/correspondence rules documented and tested |
 | CHESS-009 | Define phase/endgame v1 | Rules-based opening/middlegame/endgame classification drafted |
 | CHESS-010 | Produce EDA readout | Findings, risks, and next strongest move summarized for stakeholder-style update |

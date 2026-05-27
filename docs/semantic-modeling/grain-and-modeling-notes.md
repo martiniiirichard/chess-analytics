@@ -43,10 +43,13 @@ Use specialized packages instead of handwritten parsing:
 
 | Layer | Storage | Purpose |
 |---|---|---|
-| Landing | Raw `.pgn.zst` | Immutable source capture |
+| Transient Landing | Raw `.pgn.zst` monthly file | Temporary source capture during a controlled ingestion run |
+| Ingestion Evidence | Manifest plus `raw_game_sample` | Durable traceability after raw monthly files are deleted |
 | Bronze | Parsed game and move records | Minimal transformation, source-faithful |
 | Silver | Cleaned/enriched facts | Time-control class, result normalization, move numbers, material state |
 | Gold | BI-ready facts/dimensions/aggregates | Power BI and stakeholder-facing metrics |
+
+Raw monthly files may be deleted after Bronze ingestion completes, validation passes, an ingestion manifest is written, and the raw game sample is captured. This keeps laptop storage manageable while preserving enough evidence to troubleshoot parser behavior.
 
 ## Open Modeling Questions
 

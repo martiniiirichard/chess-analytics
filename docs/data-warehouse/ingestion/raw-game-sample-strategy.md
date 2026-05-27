@@ -60,6 +60,18 @@ Reason: this is fast, deterministic, easy to explain, and sufficient for parser/
 - Do not use `raw_game_sample` as the source for analytics.
 - Store `raw_game_sample` in the same local warehouse/database as ingestion manifests once the warehouse exists.
 
+## Raw File Deletion Rule
+
+No manual approval is needed to delete the downloaded monthly raw file when all required ingestion steps completed successfully:
+
+- Monthly Bronze ingestion completed.
+- Required validation checks passed.
+- Ingestion manifest was written.
+- Raw game sample was captured.
+- No required step was skipped.
+
+If any required step fails or is skipped, raw file deletion must pause and Martin must approve the next action.
+
 ## Validation Role
 
 `raw_game_sample` should be used with an ingestion manifest.
@@ -122,7 +134,6 @@ Future checks:
 - Should failed/unparseable games be captured in a separate `raw_parse_failure_sample` table?
 - Should raw samples be stored as database rows, Parquet, or plain `.pgn` files during the laptop prototype?
 - What parse failure rate is acceptable before retaining the raw file for investigation?
-- Should each monthly run require manual approval before deleting the raw file?
 
 ## Current Recommendation
 
