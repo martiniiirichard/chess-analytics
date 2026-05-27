@@ -4,7 +4,7 @@ Working project for analyzing the Lichess open database from raw PGN exports thr
 
 Primary source: https://database.lichess.org/
 
-Project governance: see `docs/governance.md`.
+Project governance: see `docs/governance/approval-workflow.md`.
 
 ## Current Direction
 
@@ -16,9 +16,9 @@ Project governance: see `docs/governance.md`.
 
 ## Repo Areas
 
-- `docs/`: planning, architecture notes, metric definitions, project status.
+- `docs/`: governance, planning, data warehouse, semantic modeling, and Power BI notes.
 - `data/`: local raw/sample data only; should not be committed.
 - `notebooks/`: optional EDA notebooks.
-- `src/`: ingestion, parsing, profiling, and transformation code.
-- `sql/`: warehouse DDL and load scripts.
+- `analysis/`: EDA outputs and exploratory findings.
+- `src/`: executable Python workflows for warehouse profiling, ingestion, transforms, and validation.
 - `powerbi/`: future Power BI model/report artifacts.

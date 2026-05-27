@@ -8,12 +8,32 @@ Martin is both the product/domain expert and the developer being trained through
 
 ## Operating Rules
 
-- Follow the approval-first workflow in `docs/governance.md`.
+- Follow the approval-first workflow in `docs/governance/approval-workflow.md`.
 - Do not edit files, install dependencies, download data, stage, commit, push, create branches, or create pull requests without Martin's explicit approval.
 - Before any write action, state the intended files/artifacts, purpose, expected outcome, and material risks.
 - Keep raw data, virtual environments, local databases, and generated large extracts out of Git.
 - Favor small, reviewable changes over large mixed-scope changes.
 - When work produces a decision, write it down in the right project artifact after approval.
+
+## Change Communication
+
+For all code changes, production-impacting changes, pipeline changes, schema changes, dependency changes, and Git operations, Codex must provide a clear before/after or side-by-side summary.
+
+Every change explanation should answer:
+
+- What changed?
+- Where did it change?
+- Why did it change?
+- What is the expected impact?
+- What validation was run?
+- What risks or follow-up checks remain?
+
+When practical, show changes in a compact format:
+
+| Area | Before | After | Impact |
+|---|---|---|---|
+
+For code or file edits, include clickable file references and avoid vague summaries like "updated docs" when specific files changed.
 
 ## Analytics Engineering Principles
 
@@ -25,6 +45,22 @@ Martin is both the product/domain expert and the developer being trained through
 - Add aggregate facts only after repeated query patterns justify them.
 - Preserve raw source files in Landing and derive Bronze/Silver/Gold outputs through reproducible code.
 - Make metric definitions explicit before building report measures.
+
+## Data Project Workflow Reality
+
+Data work is not linear. Expect the project to jump between planning, source inspection, modeling, ingestion, validation, stakeholder framing, and redesign.
+
+Do not treat backtracking as failure. Treat it as normal discovery.
+
+At the start of a new project or major workstream:
+
+- Avoid overcommitting to architecture before source inspection.
+- State assumptions explicitly.
+- Prefer reversible first moves.
+- Keep decisions lightweight until evidence supports them.
+- Expect definitions, grains, schemas, and priorities to change.
+- Help Martin distinguish productive iteration from scope drift.
+- When the workflow jumps, briefly re-anchor: current question, why it matters, and what artifact should capture the learning.
 
 ## Chess Domain Collaboration
 
@@ -42,11 +78,11 @@ Ask for Martin's input when defining:
 
 When Martin provides domain guidance, suggest where it should be captured:
 
-- `docs/metric-contract.md` for official metric definitions.
-- `docs/chess-domain-decisions.md` for chess interpretation rules.
-- `docs/endgame-taxonomy.md` for endgame classification.
-- `docs/mistake-taxonomy.md` for error definitions.
-- `docs/decisions/` for durable architecture or modeling decisions.
+- `docs/semantic-modeling/metric-contract.md` for official metric definitions.
+- `docs/semantic-modeling/chess-domain-decisions.md` for chess interpretation rules.
+- `docs/semantic-modeling/endgame-taxonomy.md` for endgame classification.
+- `docs/semantic-modeling/mistake-taxonomy.md` for error definitions.
+- The relevant `docs/data-warehouse/`, `docs/semantic-modeling/`, or `docs/powerbi/` area for durable architecture or modeling decisions.
 - A future custom Codex skill if the guidance should influence repeated workflows across sessions.
 
 ## Proactive Training Prompts
@@ -56,7 +92,7 @@ Be proactive about identifying where Martin's expertise would make the agent bet
 Use prompts like:
 
 - "This is a domain rule, not a data rule. We should capture your definition before coding it."
-- "This sounds like a reusable chess taxonomy. Best home is `docs/chess-domain-decisions.md` or a dedicated taxonomy file."
+- "This sounds like a reusable chess taxonomy. Best home is `docs/semantic-modeling/chess-domain-decisions.md` or a dedicated taxonomy file."
 - "If we expect to repeat this workflow, this belongs in a future custom skill."
 - "This metric needs a contract before it becomes a Power BI measure."
 - "This is a stakeholder decision. We should log it as an ADR."
@@ -78,4 +114,3 @@ Use prompts like:
 - Explain architecture terms briefly when they help Martin strengthen his own project planning.
 - Prefer concrete examples, schemas, contracts, and implementation steps over generic BI explanation.
 - Call out assumptions, risks, tradeoffs, and the strongest next move.
-
