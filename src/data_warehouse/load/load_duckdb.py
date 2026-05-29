@@ -10,9 +10,9 @@ from typing import Any
 import duckdb
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # CONSTANTS
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 LOAD_VERSION = "duckdb-load-0.1.0"
 DB_FILENAME = "chess_analytics.duckdb"
@@ -29,10 +29,10 @@ DIMENSION_TABLES = [
 ]
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # LOAD — FACT_GAME
 # fact_game is partitioned by source_month; glob picks up all loaded months.
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def load_fact_game(conn: duckdb.DuckDBPyConnection, gold_root: Path) -> int:
     pattern = (gold_root / "game" / "source_month=*" / "fact_game.parquet").as_posix()
@@ -43,10 +43,10 @@ def load_fact_game(conn: duckdb.DuckDBPyConnection, gold_root: Path) -> int:
     return conn.execute("SELECT COUNT(*) FROM fact_game").fetchone()[0]
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # LOAD — DIMENSIONS
 # Dimensions are single files; CREATE OR REPLACE replaces on each run.
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def load_dimension(conn: duckdb.DuckDBPyConnection, table_name: str, parquet_path: Path) -> int:
     path = parquet_path.as_posix()
@@ -69,9 +69,9 @@ def load_all_dimensions(
     return counts
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # VALIDATION
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def validate_load(
     conn: duckdb.DuckDBPyConnection,
@@ -82,13 +82,13 @@ def validate_load(
     messages: list[str] = []
     status = "pass"
 
-    # ── Row count sanity ─────────────────────────────────────────────────────
+    # -- Row count sanity -----------------------------------------------------
     for table, count in row_counts.items():
         if count == 0:
             status = "fail"
             messages.append(f"{table} loaded 0 rows.")
 
-    # ── FK spot-checks ───────────────────────────────────────────────────────
+    # -- FK spot-checks -------------------------------------------------------
     fk_checks = [
         ("fact_game", "Date_SK",                   "dim_date",                    "Date_SK"),
         ("fact_game", "WhiteRating_SK",             "dim_white_rating",            "WhiteRating_SK"),
@@ -110,7 +110,7 @@ def validate_load(
                 f"{orphan_count} fact_game rows have no match in {dim_table}.{dim_col}."
             )
 
-    # ── Gold manifest cross-check ────────────────────────────────────────────
+    # -- Gold manifest cross-check --------------------------------------------
     if gold_manifest_path and gold_manifest_path.exists():
         manifest = json.loads(gold_manifest_path.read_text(encoding="utf-8"))
         expected = manifest.get("QualityCounts", {}).get("FactRowsWritten")
@@ -126,9 +126,9 @@ def validate_load(
     return status, messages
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # ORCHESTRATION
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def load(args: argparse.Namespace) -> dict[str, Any]:
     output_root = args.output_root.resolve()

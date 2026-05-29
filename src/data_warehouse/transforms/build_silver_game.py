@@ -13,9 +13,9 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # CONSTANTS
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 TRANSFORM_VERSION = "silver-game-0.2.0"
 SCHEMA_VERSION = "silver-game-v1"
@@ -23,9 +23,9 @@ TIME_CONTROL_PATTERN = re.compile(r"^(?P<initial>\d+)\+(?P<increment>\d+)$")
 UNKNOWN_RATING_SENTINEL = 100
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # SHARED HELPERS
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def stable_positive_key(value: str) -> int:
     """Deterministic 63-bit key; stable across reruns."""
@@ -48,9 +48,9 @@ def date_key(game_date: date | None) -> int | None:
     return (game_date.year * 10000) + (game_date.month * 100) + game_date.day
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # DIM_TIME_CONTROL
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 DIM_TIME_CONTROL_SCHEMA = pa.schema(
     [
@@ -127,9 +127,9 @@ def build_dim_time_control(
     return per_row, dim_rows
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # DIM_TERMINATION
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 DIM_TERMINATION_SCHEMA = pa.schema(
     [
@@ -179,9 +179,9 @@ def build_dim_termination(
     return per_row, dim_rows
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # DIM_RATING_DIFFERENCE_BUCKET
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 DIM_RATING_DIFFERENCE_BUCKET_SCHEMA = pa.schema(
     [
@@ -233,9 +233,9 @@ def build_dim_rating_difference_bucket() -> list[dict[str, Any]]:
     ]
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # SILVER_GAME
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 SILVER_GAME_SCHEMA = pa.schema(
     [
@@ -318,9 +318,9 @@ def build_silver_game_rows(
     return silver_rows
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # VALIDATION
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def validate_parquet_schema(output_path: Path, expected_schema: pa.Schema, label: str) -> tuple[str, list[str]]:
     actual_schema = pq.read_schema(output_path)
@@ -364,7 +364,7 @@ def validate_rows(
         "UnknownBlackRatingRows": sum(1 for row in silver_rows if row["BlackRating_SK"] == UNKNOWN_RATING_SENTINEL),
     }
 
-    # ── silver_game row integrity ────────────────────────────────────────────
+    # -- silver_game row integrity --------------------------------------------
     if len(bronze_rows) != len(silver_rows):
         status = "fail"
         messages.append("Silver row count does not equal Bronze row count.")
@@ -400,7 +400,7 @@ def validate_rows(
         status = "fail"
         messages.append(f"{len(invalid_flags)} rows fail win/draw flag validation.")
 
-    # ── Rating field integrity ───────────────────────────────────────────────
+    # -- Rating field integrity -----------------------------------------------
     if any(row["WhiteRating_SK"] is None or not isinstance(row["WhiteRating_SK"], int) for row in silver_rows):
         status = "fail"
         messages.append("One or more WhiteRating_SK values are null or non-integer after normalization.")
@@ -417,7 +417,7 @@ def validate_rows(
         status = "fail"
         messages.append("One or more rows have a negative AbsRatingDifference.")
 
-    # ── Dimension referential integrity ─────────────────────────────────────
+    # -- Dimension referential integrity -------------------------------------
     time_control_keys = {row["TimeControl_SK"] for row in dim_time_control_rows}
     if any(row["TimeControl_SK"] not in time_control_keys for row in silver_rows):
         status = "fail"
@@ -438,9 +438,9 @@ def validate_rows(
     return status, messages, quality_counts
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # ORCHESTRATION
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def write_parquet(rows: list[dict[str, Any]], output_path: Path, schema: pa.Schema) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)

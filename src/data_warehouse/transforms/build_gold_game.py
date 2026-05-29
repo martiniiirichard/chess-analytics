@@ -12,9 +12,9 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # CONSTANTS
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 TRANSFORM_VERSION = "gold-game-0.1.0"
 SCHEMA_VERSION = "gold-game-v1"
@@ -35,9 +35,9 @@ _MONTH_NAMES = [
 _DOW_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # SHARED HELPERS
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def stable_positive_key(value: str) -> int:
     """Deterministic 63-bit key; stable across reruns."""
@@ -45,9 +45,9 @@ def stable_positive_key(value: str) -> int:
     return int.from_bytes(digest[:8], "big") & 0x7FFF_FFFF_FFFF_FFFF
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # DIM_DATE
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 DIM_DATE_SCHEMA = pa.schema(
     [
@@ -83,12 +83,12 @@ def build_dim_date(silver_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(members.values(), key=lambda r: r["Date_SK"])
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # DIM_WHITE_RATING / DIM_BLACK_RATING
 # Two separate dimension tables; same shape, different SK column names.
 # SK column name matches the FK name in fact_game so Power BI auto-detects both
 # relationships. Separate tables keep both relationships active simultaneously.
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def _make_dim_rating_schema(sk_column: str) -> pa.Schema:
     return pa.schema(
@@ -132,9 +132,9 @@ def build_dim_rating(silver_rows: list[dict[str, Any]], rating_field: str) -> li
     return sorted(members.values(), key=lambda r: r[rating_field])
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # DIM_RATING_DIFFERENCE_BUCKET  (promoted from Silver, schema unchanged)
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 DIM_RATING_DIFFERENCE_BUCKET_SCHEMA = pa.schema(
     [
@@ -147,9 +147,9 @@ DIM_RATING_DIFFERENCE_BUCKET_SCHEMA = pa.schema(
 )
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # DIM_TIME_CONTROL  (promoted from Silver, schema unchanged)
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 DIM_TIME_CONTROL_SCHEMA = pa.schema(
     [
@@ -165,9 +165,9 @@ DIM_TIME_CONTROL_SCHEMA = pa.schema(
 )
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # DIM_TERMINATION  (promoted from Silver, schema unchanged)
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 DIM_TERMINATION_SCHEMA = pa.schema(
     [
@@ -180,9 +180,9 @@ DIM_TERMINATION_SCHEMA = pa.schema(
 )
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # DIM_ECO
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 DIM_ECO_SCHEMA = pa.schema(
     [
@@ -221,9 +221,9 @@ def build_dim_eco(
     return eco_sk_map, dim_rows
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # DIM_OPENING_VARIATION
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 DIM_OPENING_VARIATION_SCHEMA = pa.schema(
     [
@@ -261,9 +261,9 @@ def build_dim_opening_variation(
     return opening_sk_map, dim_rows
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # FACT_GAME
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 FACT_GAME_SCHEMA = pa.schema(
     [
@@ -335,9 +335,9 @@ def build_fact_game(
     return fact_rows
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # VALIDATION
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def validate_parquet_schema(output_path: Path, expected_schema: pa.Schema, label: str) -> tuple[str, list[str]]:
     actual_schema = pq.read_schema(output_path)
@@ -380,7 +380,7 @@ def validate_rows(
         "UnmappedOpeningRows": sum(1 for r in fact_rows if r["OpeningVariation_SK"] == 0),
     }
 
-    # ── Fact row integrity ───────────────────────────────────────────────────
+    # -- Fact row integrity ---------------------------------------------------
     if len(silver_rows) != len(fact_rows):
         status = "fail"
         messages.append("Fact row count does not equal Silver row count.")
@@ -393,7 +393,7 @@ def validate_rows(
         status = "fail"
         messages.append("SourceGameID is not unique in fact_game output.")
 
-    # ── Dimension referential integrity ─────────────────────────────────────
+    # -- Dimension referential integrity -------------------------------------
     date_keys = {r["Date_SK"] for r in outputs["dim_date"]}
     if any(r["Date_SK"] is not None and r["Date_SK"] not in date_keys for r in fact_rows):
         status = "fail"
@@ -439,9 +439,9 @@ def validate_rows(
     return status, messages, quality_counts
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 # ORCHESTRATION
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def write_parquet(rows: list[dict[str, Any]], output_path: Path, schema: pa.Schema) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
