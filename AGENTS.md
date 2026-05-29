@@ -46,6 +46,7 @@ For code or file edits, include clickable file references and avoid vague summar
 - Preserve raw source files in Landing and derive Bronze/Silver/Gold outputs through reproducible code.
 - Make metric definitions explicit before building report measures.
 - When metrics can change ingestion grain, storage strategy, or semantic model shape, define the metric contract before implementing pipelines.
+- Prefix surrogate key columns with `SK_`, and use the same key column name on both sides of intended fact/dimension relationships.
 
 ## Data Project Workflow Reality
 

@@ -36,13 +36,275 @@ Metrics can change what data must be captured, what grain is required, which dim
 
 | Metric | Business Question | Grain Required | Core Fields | Dimensions | Notes |
 |---|---|---|---|---|---|
+| Game Count | How many games are in the selected filter context? | Game | `source_game_id` | All game dimensions | Base measure for opening popularity, time-control mix, rating distribution, and rate denominators |
 | White Score % | How well does White score across the selected population? | Game | `result_raw`, `white_score` | Date, time control, rating band, opening | Score convention: win = 1, draw = 0.5, loss = 0 |
 | Black Score % | How well does Black score across the selected population? | Game | `result_raw`, `black_score` | Date, time control, rating band, opening | Same convention from Black perspective |
 | Draw Rate | How often do games end in draws? | Game | `result_raw` | Date, time control, rating band, opening | Useful because draw rate changes sharply by pool |
-| Opening Popularity | Which openings occur most often? | Game | `eco_code`, `opening_name` | ECO, opening variation, time control, rating band | ECO is parent classification; Lichess Opening is variation label |
-| Opening Score % | Which openings perform best by side? | Game | `result_raw`, `white_score`, `black_score`, `eco_code`, `opening_name` | ECO, opening variation, side, time control, rating band | Needs sample-size threshold |
+| Opening Score % | Which openings perform best by side? | Game | `white_score`, `black_score`, opening keys | ECO, opening variation, side, time control, rating band | Semantic/report-context measure using White/Black Score % |
 | Time Control Mix | What types of games are in the data? | Game | `time_control_raw` | Time control, time-control class, date | Requires parsing initial/increment/delay/correspondence |
-| Termination Rate | How do games end? | Game | `termination_raw` | Time control, rating band, date | Needs more profiling beyond 2013-01 |
+| Time Forfeit Count | How many games ended by time forfeit? | Game | `termination_raw` | Time control, rating band, date, termination | Derived from `Termination = Time forfeit` |
+| Time Forfeit Rate | How often do games end by time forfeit? | Game | `termination_raw` | Time control, rating band, date, termination | Important because time forfeits are common in the sample |
+
+## Official Metric Definitions
+
+### Game Count
+
+Business question: How many games are in the selected filter context?
+
+Grain required: game.
+
+Definition: count of rows in `fact_game` after report filters are applied.
+
+DAX:
+
+```DAX
+Game Count = COUNTROWS('fact_game')
+```
+
+Modeling rule: do not add a physical `game_count = 1` helper column to `fact_game`; use the semantic model measure.
+
+Validation rule:
+
+```text
+Game Count = Bronze game row count for the selected load/month
+```
+
+Reporting patterns:
+
+- Opening popularity = `Game Count` by ECO or opening variation.
+- Time control mix = `Game Count` by time control.
+- Rating distribution = `Game Count` by rating band.
+- Termination distribution = `Game Count` by termination.
+
+### White Score %
+
+Business question: How well does White score across the selected population?
+
+Grain required: game.
+
+Definition: average score earned by White, where a White win is worth 1.0, a draw is worth 0.5, and a White loss is worth 0.0.
+
+Calculation:
+
+```text
+White Score % = SUM(white_score) / COUNT(source_game_id)
+```
+
+Result mapping:
+
+| `result_raw` | `white_score` |
+|---|---:|
+| `1-0` | 1.0 |
+| `1/2-1/2` | 0.5 |
+| `0-1` | 0.0 |
+
+Validation rule:
+
+```text
+White Score % + Black Score % = 100%
+```
+
+### Black Score %
+
+Business question: How well does Black score across the selected population?
+
+Grain required: game.
+
+Definition: average score earned by Black, where a Black win is worth 1.0, a draw is worth 0.5, and a Black loss is worth 0.0.
+
+Calculation:
+
+```text
+Black Score % = SUM(black_score) / COUNT(source_game_id)
+```
+
+Result mapping:
+
+| `result_raw` | `black_score` |
+|---|---:|
+| `1-0` | 0.0 |
+| `1/2-1/2` | 0.5 |
+| `0-1` | 1.0 |
+
+Validation rules:
+
+```text
+White Score % + Black Score % = 100%
+```
+
+```text
+white_score + black_score = 1.0 for every completed game
+```
+
+### Draw Rate
+
+Business question: How often do games end in draws across the selected population?
+
+Grain required: game.
+
+Definition: percentage of completed games where the result is a draw.
+
+Calculation:
+
+```text
+Draw Rate = SUM(is_draw) / COUNT(source_game_id)
+```
+
+Result mapping:
+
+| `result_raw` | `is_draw` |
+|---|---:|
+| `1-0` | 0 |
+| `1/2-1/2` | 1 |
+| `0-1` | 0 |
+
+Known limitations:
+
+- Draw rate is heavily affected by rating band and time control.
+- Bullet and blitz games may have materially different draw behavior from rapid, classical, or high-rating games.
+
+Validation rule:
+
+```text
+White Win Rate + Black Win Rate + Draw Rate = 100%
+```
+
+### White Win Rate
+
+Business question: How often does White win across the selected population?
+
+Grain required: game.
+
+Definition: percentage of completed games where White wins.
+
+Calculation:
+
+```text
+White Win Rate = SUM(is_white_win) / COUNT(source_game_id)
+```
+
+Result mapping:
+
+| `result_raw` | `is_white_win` |
+|---|---:|
+| `1-0` | 1 |
+| `1/2-1/2` | 0 |
+| `0-1` | 0 |
+
+### Black Win Rate
+
+Business question: How often does Black win across the selected population?
+
+Grain required: game.
+
+Definition: percentage of completed games where Black wins.
+
+Calculation:
+
+```text
+Black Win Rate = SUM(is_black_win) / COUNT(source_game_id)
+```
+
+Result mapping:
+
+| `result_raw` | `is_black_win` |
+|---|---:|
+| `1-0` | 0 |
+| `1/2-1/2` | 0 |
+| `0-1` | 1 |
+
+Validation rule:
+
+```text
+White Win Rate + Black Win Rate + Draw Rate = 100%
+```
+
+### Opening Score %
+
+Business question: Which openings or opening variations perform best by side?
+
+Grain required: game.
+
+Definition: score percentage evaluated in an opening-filtered report context.
+
+DAX pattern:
+
+```DAX
+White Opening Score % = [White Score %]
+Black Opening Score % = [Black Score %]
+```
+
+Required filter context:
+
+- `dim_eco`
+- `dim_opening_variation`
+
+Modeling rule: do not create separate ingestion fields for opening score. This is a semantic/reporting measure over `White Score %`, `Black Score %`, `Game Count`, and the opening dimensions.
+
+Guardrail:
+
+```text
+Only interpret opening score when [Game Count] meets the agreed minimum sample threshold.
+```
+
+Potential helper measure:
+
+```DAX
+Opening Sample Warning =
+IF(
+    [Game Count] < 100,
+    "Low sample size",
+    BLANK()
+)
+```
+
+### Time Forfeit Count
+
+Business question: How many games ended by time forfeit in the selected population?
+
+Grain required: game.
+
+Definition: count of games where the source termination value is `Time forfeit`.
+
+DAX pattern:
+
+```DAX
+Time Forfeit Count =
+CALCULATE(
+    [Game Count],
+    'dim_termination'[IsTimeForfeit] = TRUE()
+)
+```
+
+Source mapping:
+
+| `termination_raw` | `IsTimeForfeit` |
+|---|---:|
+| `Time forfeit` | 1 |
+| other known values | 0 |
+
+### Time Forfeit Rate
+
+Business question: How often do games end by time forfeit in the selected population?
+
+Grain required: game.
+
+Definition: percentage of games where the source termination value is `Time forfeit`.
+
+DAX pattern:
+
+```DAX
+Time Forfeit Rate =
+DIVIDE(
+    [Time Forfeit Count],
+    [Game Count]
+)
+```
+
+Known limitations:
+
+- Termination values should be profiled by source month because later months may include values not present in 2013-01.
+- Time forfeit behavior should usually be interpreted by time-control class.
 
 ## V2 Move And Endgame Metrics
 
@@ -66,9 +328,11 @@ Metrics can change what data must be captured, what grain is required, which dim
 
 | Requirement | Driven By | Implication |
 |---|---|---|
-| Game-grain result parsing | Score %, draw rate, opening score | `fact_game` can support v1 metrics |
-| ECO/opening dimensions | Opening popularity and score | Use `dim_eco` as parent classification and `dim_opening_variation` from observed Lichess opening labels |
+| Game-grain row count | Game Count and all rate denominators | `fact_game` must contain one row per game and support `COUNTROWS` |
+| Game-grain result parsing | Score %, win rates, draw rate, opening score | `fact_game` can support v1 metrics |
+| ECO/opening dimensions | Opening popularity reporting pattern and opening score | Use `dim_eco` as parent classification and `dim_opening_variation` from observed Lichess opening labels; opening score is a semantic/report-context measure |
 | Time-control parsing | Time control mix and filters | Need parsed numeric fields and class/type |
+| Termination parsing | Time Forfeit Count and Time Forfeit Rate | Need `dim_termination` with `IsTimeForfeit` |
 | Move-grain rows | Endgame and phase metrics | `fact_move` required for v2 |
 | Material/phase derivation | Endgame metrics | Need board replay, but not full FEN persistence by default |
 | Eval source | Mistake/blunder metrics | Need Lichess eval comments, separate eval data, or engine pass |

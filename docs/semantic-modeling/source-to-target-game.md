@@ -45,14 +45,20 @@ The source natural key is the Lichess game id derived from the `Site` PGN header
 | `Result` | `result_raw` | string | Replace with `result_key` and score columns | Dimension or small code | Map `1-0`, `0-1`, `1/2-1/2` | Must be one known result code | Proposed code: 0 draw, 1 white win, 2 black win |
 | `Result` | `white_score` | decimal | Keep in fact or result dimension | Keep | `1-0` = 1.0; `1/2-1/2` = 0.5; `0-1` = 0.0 | Between 0 and 1 | Useful for score percentage |
 | `Result` | `black_score` | decimal | Keep in fact or result dimension | Keep | `1-0` = 0.0; `1/2-1/2` = 0.5; `0-1` = 1.0 | Between 0 and 1 | Useful for black score percentage |
-| `WhiteElo` | `white_elo_raw` | string | Convert to `white_elo` integer | Keep transformed | Strip/parse integer | Integer or unknown sentinel | Add rating band later |
-| `BlackElo` | `black_elo_raw` | string | Convert to `black_elo` integer | Keep transformed | Strip/parse integer | Integer or unknown sentinel | Add rating band later |
+| `WhiteElo` | `white_elo_raw` | string | Convert to `WhiteRating_SK` integer | Dimension | Strip/parse integer; key equals rating value when valid | Integer or unknown sentinel | Relates to `dim_white_rating.WhiteRating_SK` |
+| `BlackElo` | `black_elo_raw` | string | Convert to `BlackRating_SK` integer | Dimension | Strip/parse integer; key equals rating value when valid | Integer or unknown sentinel | Relates to `dim_black_rating.BlackRating_SK` |
+| derived | `AbsRatingDifference` | integer | Keep in fact | Keep | `ABS(WhiteRating_SK - BlackRating_SK)` when both ratings are valid | Non-negative integer or null | Supports mismatch/sandbagging analysis |
+| derived | `RatingDifferenceBucket_SK` | integer | Relate to `dim_rating_difference_bucket` | Dimension | Bucket `AbsRatingDifference` | Must map to known bucket when both ratings are valid | No text bucket in fact |
 | `WhiteRatingDiff` | `white_rating_diff_raw` | string | Drop from Gold for now | Bronze only | Preserve raw value | Optional signed integer if present | Not needed for current analysis |
 | `BlackRatingDiff` | `black_rating_diff_raw` | string | Drop from Gold for now | Bronze only | Preserve raw value | Optional signed integer if present | Not needed for current analysis |
 | `ECO` | `eco_code` | string | Replace with `eco_key` | Dimension | Preserve code; load `dim_eco` | Code pattern should be profiled, not assumed | ECO is the stable parent opening classification |
 | `Opening` | `opening_name` | string | Replace with `opening_variation_key` | Dimension | Preserve raw Lichess text; load `dim_opening_variation` | Not blank rate should be tracked | Lichess is authoritative for observed variation labels |
-| `TimeControl` | `time_control_raw` | string | Replace with `time_control_key`; keep parsed numeric fields if useful | Dimension | Parse initial/increment/delay/correspondence patterns | Known pattern or quarantine/unknown | Needs more profiling across months |
-| `Termination` | `termination_raw` | string | Candidate `termination_key` | Dimension candidate | Preserve raw value; profile distinct values | Known value or unknown bucket | 2013-01 only showed `Normal` and `Time forfeit` |
+| `TimeControl` | `time_control_raw` | string | Replace with `TimeControl_SK` | Dimension | Preserve raw value in Bronze; split in Silver | Known pattern or unknown bucket | Lichess sample uses increment format like `600+8` |
+| `TimeControl` | `InitialSeconds` | integer | Store in `dim_time_control` | Dimension attribute | Split before `+`, cast to integer | Integer when parsed | Silver-layer transformation |
+| `TimeControl` | `IncrementSeconds` | integer | Store in `dim_time_control` | Dimension attribute | Split after `+`, cast to integer | Integer when parsed | Increment added after each move |
+| derived | `EstimatedGameSeconds` | integer | Store in `dim_time_control` | Dimension attribute | `InitialSeconds + (40 * IncrementSeconds)` | Non-negative integer when parsed | Lichess-style classification basis |
+| derived | `TimeControlClass` | string | Store in `dim_time_control` | Dimension attribute | Classify estimated duration | One of Bullet, Blitz, Rapid, Classical, Unknown | Do not compare directly to OTB chess classes |
+| `Termination` | `termination_raw` | string | Replace with `Termination_SK` | Dimension | Preserve raw value; derive termination attributes | Known value or unknown bucket | 2013-01 only showed `Normal` and `Time forfeit` |
 | derived | `source_month` | string | Keep | Keep | From source file/month | Must match ingestion manifest | Partition and lineage column |
 | derived | `source_file_sha256` | string | Keep in Bronze; may drop from Gold | Bronze/lineage | From compressed source file hash | Must match manifest | Supports raw-file deletion strategy |
 | derived | `ingestion_run_id` | string | Keep in Bronze; may drop from Gold | Bronze/lineage | Generated per run | Must match manifest | Supports audit/debug |
@@ -61,13 +67,16 @@ The source natural key is the Lichess game id derived from the `Site` PGN header
 
 | Dimension | Grain | Key In Fact | Notes |
 |---|---|---|---|
-| `dim_player` | One row per distinct Lichess player name or player id | `white_player_key`, `black_player_key` | Role-playing dimension; may need bot/closed-account handling later |
-| `dim_result` | One row per game result code | `result_key` | Avoids magic numbers and stores white/black scores |
-| `dim_eco` | One row per ECO code | `eco_key` | Stable parent opening classification |
-| `dim_opening_variation` | One row per distinct Lichess opening variation under an ECO code | `opening_variation_key` | Connects to `dim_eco`; keeps long text out of fact |
-| `dim_time_control` | One row per distinct parsed time control pattern | `time_control_key` | Stores raw value, initial seconds, increment seconds, delay seconds, type, and class |
-| `dim_termination` | One row per termination value | `termination_key` | Keep candidate until more months are profiled |
-| `dim_date` | One row per calendar date | `date_key` | Optional, but likely useful for Power BI |
+| `dim_player` | One row per distinct Lichess player name or player id | `WhitePlayer_SK`, `BlackPlayer_SK` | Role-playing dimension; may need bot/closed-account handling later |
+| `dim_result` | One row per game result code | `Result_SK` | Avoids magic numbers and stores white/black scores |
+| `dim_eco` | One row per ECO code | `ECO_SK` | Stable parent opening classification |
+| `dim_opening_variation` | One row per distinct Lichess opening variation under an ECO code | `OpeningVariation_SK` | Connects to `dim_eco`; keeps long text out of fact |
+| `dim_white_rating` | One row per White rating value | `WhiteRating_SK` | Active relationship for White rating analysis |
+| `dim_black_rating` | One row per Black rating value | `BlackRating_SK` | Active relationship for Black rating analysis |
+| `dim_rating_difference_bucket` | One row per absolute rating difference bucket | `RatingDifferenceBucket_SK` | Supports mismatch analysis without text in fact |
+| `dim_time_control` | One row per distinct parsed time control pattern | `TimeControl_SK` | Stores raw value, initial seconds, increment seconds, estimated game seconds, type, and class |
+| `dim_termination` | One row per termination value | `Termination_SK` | Stores termination label and `IsTimeForfeit` flag |
+| `dim_date` | One row per calendar date | `Date_SK` | Optional, but likely useful for Power BI |
 
 ## Time Control Parsing Notes
 
@@ -77,10 +86,23 @@ For `600+8`:
 |---|---|
 | `initial_seconds` | `600` |
 | `increment_seconds` | `8` |
-| `delay_seconds` | null |
 | `time_control_type` | `increment` |
 
-Open issue: confirm whether Lichess PGN exports encode delay time controls differently or at all.
+Accepted v1 classification:
+
+```text
+EstimatedGameSeconds = InitialSeconds + (40 * IncrementSeconds)
+```
+
+```text
+Bullet:    EstimatedGameSeconds < 180
+Blitz:     180 <= EstimatedGameSeconds < 480
+Rapid:     480 <= EstimatedGameSeconds < 1500
+Classical: EstimatedGameSeconds >= 1500
+Unknown:   unparsable / "-"
+```
+
+Do not include delay fields in v1. Delay has not been observed in the sample and Lichess account UI presents increment controls.
 
 ## Opening Modeling Notes
 
@@ -113,6 +135,52 @@ dim_opening_variation
 - mapping_status
 ```
 
+## Rating Modeling Notes
+
+White and Black ratings use separate role-specific dimensions so both Power BI relationships can remain active.
+
+Initial relationship pattern:
+
+```text
+fact_game.WhiteRating_SK -> dim_white_rating.WhiteRating_SK
+fact_game.BlackRating_SK -> dim_black_rating.BlackRating_SK
+fact_game.RatingDifferenceBucket_SK -> dim_rating_difference_bucket.RatingDifferenceBucket_SK
+```
+
+Do not include average rating in v1. It is not currently considered analytically useful.
+
+The source Elo value can be relabeled as the rating key when valid. Example: `WhiteElo = 1639` becomes `WhiteRating_SK = 1639`.
+
+No rating band text should be stored in `fact_game`.
+
+## Termination Modeling Notes
+
+`Termination = Time forfeit` is a direct source value in the PGN header and should be modeled as a termination dimension attribute.
+
+Relationship pattern:
+
+```text
+fact_game.Termination_SK -> dim_termination.Termination_SK
+```
+
+Candidate dimension columns:
+
+```text
+dim_termination
+- Termination_SK
+- TerminationLabel
+- IsTimeForfeit
+- MappingStatus
+```
+
+Initial mapping:
+
+| `termination_raw` | `IsTimeForfeit` |
+|---|---:|
+| `Time forfeit` | 1 |
+| `Normal` | 0 |
+| other/unknown | 0 |
+
 ## Derived Validation Candidates
 
 Validation rules should be generated from the source-to-target contract.
@@ -124,9 +192,13 @@ Initial candidates:
 - `game_date` parses from `UTCDate`.
 - `Result` maps to one known result value.
 - `WhiteElo` and `BlackElo` parse to integers when populated.
+- `WhiteRating_SK` and `BlackRating_SK` map to their role-specific rating dimensions.
+- `RatingDifferenceBucket_SK` maps when both ratings are valid.
 - `TimeControl` is either parsed into a known pattern or assigned an unknown/quarantine status.
+- `TimeControl_SK` maps to `dim_time_control`.
 - `ECO` and `Opening` missingness is measured by source month.
 - `Termination` distinct values are profiled by source month.
+- `Termination_SK` maps to `dim_termination`.
 - Bronze game row count reconciles to parser count and ingestion manifest.
 - Bronze game rows can join to Bronze move rows by `source_game_id`.
 

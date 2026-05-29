@@ -62,6 +62,8 @@ Phase 1 is done when we can explain:
 
 ## Initial Backlog
 
+Detailed backlog and parking-lot items live in `docs/planning/backlog.md`.
+
 | ID | Work Item | Acceptance Criteria |
 |---|---|---|
 | CHESS-001 | Create project charter | Goal, scope, constraints, success criteria are documented |
