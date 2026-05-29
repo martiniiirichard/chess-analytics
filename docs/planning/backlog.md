@@ -48,7 +48,7 @@ Use this backlog when asking "what next?"
 | CHESS-BL-017 | Define local warehouse physical design | Data warehouse | In Progress | P1 | Use portable Parquet-backed medallion layers locally; DuckDB as query engine |
 | CHESS-BL-018 | Plan Fabric migration path | Fabric | Proposed | P2 | Later move from on-prem/laptop prototype to Fabric |
 | CHESS-BL-019 | Explore Synoptic Panel chess board visual | Power BI | Proposed | P2 | Later visual idea: use Synoptic Panel or a similar custom visual to make board-state analysis distinctive |
-| CHESS-BL-020 | Define Silver game transformation guide | Data warehouse | In Progress | P1 | Parse Bronze game output into typed, conformed Silver game and candidate dimensions |
+| CHESS-BL-020 | Define Silver game transformation guide | Data warehouse | Done | P1 | Silver game transformation implemented and validated for `2013-01` |
 
 ## Recently Completed
 
@@ -63,6 +63,7 @@ Use this backlog when asking "what next?"
 | CHESS-DONE-007 | Bronze game ingestion guide drafted | Defines game-grain Bronze columns, manifest, validation checks, and first implementation path |
 | CHESS-DONE-008 | Bronze game ingestion implemented | Local parser writes Bronze Parquet, raw game sample Parquet, and ingestion manifest |
 | CHESS-DONE-009 | Bronze validation implemented | Row-level sanity checks and output Parquet schema checks pass for `2013-01` |
+| CHESS-DONE-010 | Silver game transformation implemented | Local transform writes Silver game, time-control dimension, termination dimension, rating-difference bucket dimension, and manifest |
 
 ## Parking Lot
 
