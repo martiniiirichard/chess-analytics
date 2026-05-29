@@ -17,6 +17,7 @@
 | Bronze | `src/data_warehouse/ingestion/ingest_bronze_game.py` | ✅ Done + committed | `data/bronze/game/source_month=2013-01/bronze_game.parquet` |
 | Silver | `src/data_warehouse/transforms/build_silver_game.py` | ✅ Done + committed | `data/silver/game/source_month=2013-01/silver_game.parquet` |
 | Gold | `src/data_warehouse/transforms/build_gold_game.py` | ✅ Done + committed | `data/gold/game/source_month=2013-01/fact_game.parquet` |
+| DuckDB Load | `src/data_warehouse/load/load_duckdb.py` | ✅ Done + committed | `data/warehouse/chess_analytics.duckdb` (gitignored) |
 
 ### Gold Outputs (all in `data/gold/dimensions/`)
 
@@ -62,18 +63,20 @@ python src/data_warehouse/transforms/build_silver_game.py --source-month 2013-01
 
 # Gold
 python src/data_warehouse/transforms/build_gold_game.py --source-month 2013-01 --output-root data
+
+# DuckDB load (run after Gold; loads all source_month partitions automatically)
+python src/data_warehouse/load/load_duckdb.py --source-month 2013-01 --output-root data
 ```
 
 ---
 
 ## Next Steps (in order)
 
-1. **DuckDB query layer** — add `src/data_warehouse/query/query_gold.py` (or similar) that opens DuckDB over the Gold Parquet files and exposes the star schema for ad-hoc SQL.
-2. **Backlog update** — mark Gold game transform as done in `docs/planning/backlog.md`.
-3. **Runbook** — write `docs/data-warehouse/gold/gold-game-transform-runbook.md`.
-4. **Additional months** — run pipeline for more Lichess months to grow the dataset.
-5. **Power BI connection** — connect Gold Parquet files to a Power BI semantic model.
-6. **dim_player** — build when player analytics are needed; Unknown member (SK=0) pre-seeded.
+1. **Backlog update** — mark Gold + DuckDB load as done in `docs/planning/backlog.md`.
+2. **Runbooks** — write Gold transform and DuckDB load runbooks under `docs/data-warehouse/`.
+3. **Additional months** — run pipeline for more Lichess months to grow the dataset.
+4. **Power BI connection** — connect `chess_analytics.duckdb` to a Power BI semantic model via DuckDB ODBC/connector.
+5. **dim_player** — build when player analytics are needed; Unknown member (SK=0) pre-seeded.
 
 ---
 
