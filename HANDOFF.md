@@ -8,7 +8,7 @@
 
 **Branch:** `main` - up to date with origin
 **Last pushed commit:** check with `git log -1 --oneline`
-**Processed months:** `2013-01` and `2013-02` (245,293 total games)
+**Processed months:** `2013-01`, `2013-02`, and `2013-03` (403,928 total games)
 
 ### Pipeline Status
 
@@ -18,6 +18,7 @@
 | Silver | `src/data_warehouse/transforms/build_silver_game.py` | Done + committed | `data/silver/game/source_month=YYYY-MM/silver_game.parquet` |
 | Gold | `src/data_warehouse/transforms/build_gold_game.py` | Done + committed | `data/gold/game/source_month=YYYY-MM/fact_game.parquet` |
 | DuckDB Load | `src/data_warehouse/load/load_duckdb.py` | Done + committed | `data/warehouse/chess_analytics.duckdb` (gitignored) |
+| Monthly Orchestration | `src/data_warehouse/orchestration/process_month.py` | Done locally | `data/orchestration/source_month=YYYY-MM/monthly_process_manifest.json` |
 
 ### Gold Outputs
 
@@ -35,15 +36,15 @@ data/gold/dimensions/
 
 | File | Rows | Notes |
 |---|---:|---|
-| `fact_game.parquet` | 245,293 | Loaded in DuckDB across two fact partitions |
-| `dim_date.parquet` | 60 | Year/month/quarter/DOW |
-| `dim_white_rating.parquet` | 1,436 | PK = `WhiteRating_SK` |
-| `dim_black_rating.parquet` | 1,449 | PK = `BlackRating_SK` |
-| `dim_time_control.parquet` | 478 | Rebuilt globally from all Silver partitions |
+| `fact_game.parquet` | 403,928 | Loaded in DuckDB across three fact partitions |
+| `dim_date.parquet` | 91 | Year/month/quarter/DOW |
+| `dim_white_rating.parquet` | 1,528 | PK = `WhiteRating_SK` |
+| `dim_black_rating.parquet` | 1,540 | PK = `BlackRating_SK` |
+| `dim_time_control.parquet` | 521 | Rebuilt globally from all Silver partitions |
 | `dim_termination.parquet` | 2 | Promoted from Silver |
 | `dim_rating_difference_bucket.parquet` | 7 | Promoted from Silver |
-| `dim_eco.parquet` | 438 | ECO categories A-E |
-| `dim_opening_variation.parquet` | 2,077 | FK to dim_eco |
+| `dim_eco.parquet` | 456 | ECO categories A-E |
+| `dim_opening_variation.parquet` | 2,257 | FK to dim_eco |
 
 ---
 
@@ -67,25 +68,16 @@ data/gold/dimensions/
 # Activate venv from project root.
 .venv\Scripts\activate
 
-# Bronze example
-python src/data_warehouse/ingestion/ingest_bronze_game.py --input data/raw/lichess/standard/2013-02/lichess_db_standard_rated_2013-02.pgn.zst --source-month 2013-02 --source-dataset standard_rated --source-url https://database.lichess.org/standard/lichess_db_standard_rated_2013-02.pgn.zst --output-root data
-
-# Silver
-python src/data_warehouse/transforms/build_silver_game.py --source-month 2013-02 --output-root data
-
-# Gold
-python src/data_warehouse/transforms/build_gold_game.py --source-month 2013-02 --output-root data
-
-# DuckDB load. Run after Gold; loads all source_month partitions automatically.
-python src/data_warehouse/load/load_duckdb.py --source-month 2013-02 --output-root data
+# Monthly orchestration
+python src/data_warehouse/orchestration/process_month.py --source-month 2013-03 --output-root data
 ```
 
 ---
 
 ## Next Steps
 
-1. Decide whether to add a single orchestration script for monthly processing.
-2. Run additional Lichess months to grow the dataset.
+1. Decide whether to keep scaling months or pause for Power BI semantic model prototype.
+2. If scaling, run additional Lichess months through `process_month.py`.
 3. Connect `chess_analytics.duckdb` to Power BI or evaluate direct Parquet/DuckDB connector paths.
 4. Build `dim_player` when player analytics are needed; pre-seed Unknown member (`SK = 0`).
 5. Define move-grain source-to-target only after game-grain reporting proves useful.
@@ -105,3 +97,4 @@ python src/data_warehouse/load/load_duckdb.py --source-month 2013-02 --output-ro
 - Pre-refactor reference copy of Silver lives at `src/data_warehouse/transforms/_archive/build_silver_game_v0.2.0.py`.
 - Bronze manifest is at `data/bronze/manifests/source_month=2013-01/ingestion_manifest.json`, not co-located with the Parquet.
 - The `"?"` player names (90 White, 168 Black in the pilot month) are not cleaned in Silver or Gold. They remain as-is until `dim_player` is built.
+- Python network download can be sandbox-blocked. If that happens, download with PowerShell `Invoke-WebRequest`, then rerun `process_month.py`; it will skip download when the raw file exists.

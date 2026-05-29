@@ -55,6 +55,8 @@ Use this backlog when asking "what next?"
 | CHESS-BL-024 | Define multi-month processing strategy | Data warehouse | Done | P1 | Use month-partitioned facts and globally rebuilt dimensions during local prototype |
 | CHESS-BL-025 | Run second-month pipeline pilot | Data warehouse | Done | P1 | `2013-02` processed through Bronze, Silver, Gold, and DuckDB validation |
 | CHESS-BL-026 | Rebuild Gold dimensions from all Silver partitions | Data warehouse | Done | P1 | Fixed multi-month FK failures by rebuilding Gold dimensions globally |
+| CHESS-BL-027 | Build monthly processing orchestration | Data warehouse | Done | P1 | Wrapper for download, Bronze, Silver, Gold, DuckDB, and orchestration manifest |
+| CHESS-BL-028 | Run third-month orchestration pilot | Data warehouse | Done | P1 | Orchestration wrapper processed `2013-03`; DuckDB validates `403928` fact rows |
 
 ## Recently Completed
 
@@ -73,6 +75,8 @@ Use this backlog when asking "what next?"
 | CHESS-DONE-011 | Gold game star schema implemented | Local transform writes `fact_game`, date/rating/time-control/termination/rating-bucket/ECO/opening dimensions, and manifest |
 | CHESS-DONE-012 | DuckDB warehouse load implemented | Local load creates `chess_analytics.duckdb` from Gold Parquet and validates fact-to-dimension relationships |
 | CHESS-DONE-013 | Second-month pipeline pilot completed | `2013-02` added; DuckDB validates `245293` fact rows across `2013-01` and `2013-02` |
+| CHESS-DONE-014 | Monthly orchestration implemented | `process_month.py` runs Bronze, Silver, Gold, DuckDB, and writes a month-level manifest |
+| CHESS-DONE-015 | Third-month orchestration pilot completed | `2013-03` added; DuckDB validates `403928` fact rows across three months |
 
 ## Parking Lot
 
