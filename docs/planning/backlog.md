@@ -38,16 +38,17 @@ Use this backlog when asking "what next?"
 | CHESS-BL-007 | Define mistake/blunder taxonomy | Semantic modeling | Proposed | Research | Requires eval-source decision |
 | CHESS-BL-008 | Decide eval source strategy | Data warehouse | Proposed | Research | Lichess eval comments, separate eval data, or engine pass |
 | CHESS-BL-009 | Profile a modern month for clock comments | Analysis | Proposed | P1 | Early 2013 data has no clock comments |
-| CHESS-BL-010 | Build raw game sample capture | Data warehouse | Accepted | P1 | Capture first 10 raw PGNs before raw file deletion |
-| CHESS-BL-011 | Build ingestion manifest design | Data warehouse | Accepted | P1 | Needed before transient raw deletion workflow |
-| CHESS-BL-012 | Build Bronze game ingestion prototype | Data warehouse | Accepted | P1 | Design guide created; next step is implementation script |
-| CHESS-BL-013 | Build Bronze validation checks | Data warehouse | Proposed | P1 | Row count, parse count, result mapping, source key uniqueness, time-control parse status |
+| CHESS-BL-010 | Build raw game sample capture | Data warehouse | Done | P1 | First 10 decompressed PGN blocks captured in `raw_game_sample` |
+| CHESS-BL-011 | Build ingestion manifest design | Data warehouse | Done | P1 | Manifest written per run with lineage, counts, validation status, and output paths |
+| CHESS-BL-012 | Build Bronze game ingestion prototype | Data warehouse | Done | P1 | Game-grain Bronze parser implemented and validated for `2013-01` |
+| CHESS-BL-013 | Build Bronze validation checks | Data warehouse | Done | P1 | Row validation plus explicit Parquet schema validation implemented for v1 |
 | CHESS-BL-014 | Define player dimension strategy | Semantic modeling | Proposed | P2 | Needed for player behavior and sandbagging analysis |
 | CHESS-BL-015 | Define player rating event model | Semantic modeling | Proposed | Research | Needed for rating-growth/sandbagging research |
 | CHESS-BL-016 | Define Power BI semantic model plan | Power BI | Proposed | P2 | Measures, relationships, display folders, visual conventions |
-| CHESS-BL-017 | Define local warehouse physical design | Data warehouse | Proposed | P2 | File/SQL format, partitioning, indexes, and storage lifecycle |
+| CHESS-BL-017 | Define local warehouse physical design | Data warehouse | In Progress | P1 | Use portable Parquet-backed medallion layers locally; DuckDB as query engine |
 | CHESS-BL-018 | Plan Fabric migration path | Fabric | Proposed | P2 | Later move from on-prem/laptop prototype to Fabric |
 | CHESS-BL-019 | Explore Synoptic Panel chess board visual | Power BI | Proposed | P2 | Later visual idea: use Synoptic Panel or a similar custom visual to make board-state analysis distinctive |
+| CHESS-BL-020 | Define Silver game transformation guide | Data warehouse | In Progress | P1 | Parse Bronze game output into typed, conformed Silver game and candidate dimensions |
 
 ## Recently Completed
 
@@ -60,6 +61,8 @@ Use this backlog when asking "what next?"
 | CHESS-DONE-005 | Rating dimension direction documented | Separate White/Black rating dimensions; no average rating in v1 |
 | CHESS-DONE-006 | Time-control dimension direction documented | Increment-based Lichess parsing and Bullet/Blitz/Rapid/Classical classification accepted |
 | CHESS-DONE-007 | Bronze game ingestion guide drafted | Defines game-grain Bronze columns, manifest, validation checks, and first implementation path |
+| CHESS-DONE-008 | Bronze game ingestion implemented | Local parser writes Bronze Parquet, raw game sample Parquet, and ingestion manifest |
+| CHESS-DONE-009 | Bronze validation implemented | Row-level sanity checks and output Parquet schema checks pass for `2013-01` |
 
 ## Parking Lot
 
