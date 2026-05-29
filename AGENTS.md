@@ -1,5 +1,17 @@
 # AGENTS.md
 
+## Session Start — Read This First
+
+Before doing any work in a new session, read `HANDOFF.md` at the project root. It contains:
+- Current pipeline state (what is done and committed)
+- Run commands for Bronze / Silver / Gold
+- Key architecture decisions and gotchas
+- Open decisions and next steps
+
+Do not rely solely on memory or git log. `HANDOFF.md` is the authoritative session checkpoint and is kept up to date after every working session. If `HANDOFF.md` is stale or missing, ask Martin before proceeding.
+
+---
+
 ## Project Context
 
 This repo is a learning and build project for a chess analytics platform using the Lichess open database.
