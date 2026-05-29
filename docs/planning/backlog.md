@@ -40,7 +40,7 @@ Use this backlog when asking "what next?"
 | CHESS-BL-009 | Profile a modern month for clock comments | Analysis | Proposed | P1 | Early 2013 data has no clock comments |
 | CHESS-BL-010 | Build raw game sample capture | Data warehouse | Accepted | P1 | Capture first 10 raw PGNs before raw file deletion |
 | CHESS-BL-011 | Build ingestion manifest design | Data warehouse | Accepted | P1 | Needed before transient raw deletion workflow |
-| CHESS-BL-012 | Build Bronze game ingestion prototype | Data warehouse | Proposed | P1 | Wait until v1 metric/classification requirements are stable |
+| CHESS-BL-012 | Build Bronze game ingestion prototype | Data warehouse | Accepted | P1 | Design guide created; next step is implementation script |
 | CHESS-BL-013 | Build Bronze validation checks | Data warehouse | Proposed | P1 | Row count, parse count, result mapping, source key uniqueness, time-control parse status |
 | CHESS-BL-014 | Define player dimension strategy | Semantic modeling | Proposed | P2 | Needed for player behavior and sandbagging analysis |
 | CHESS-BL-015 | Define player rating event model | Semantic modeling | Proposed | Research | Needed for rating-growth/sandbagging research |
@@ -59,6 +59,7 @@ Use this backlog when asking "what next?"
 | CHESS-DONE-004 | Opening dimension direction documented | ECO as parent classification; Lichess opening as observed variation label |
 | CHESS-DONE-005 | Rating dimension direction documented | Separate White/Black rating dimensions; no average rating in v1 |
 | CHESS-DONE-006 | Time-control dimension direction documented | Increment-based Lichess parsing and Bullet/Blitz/Rapid/Classical classification accepted |
+| CHESS-DONE-007 | Bronze game ingestion guide drafted | Defines game-grain Bronze columns, manifest, validation checks, and first implementation path |
 
 ## Parking Lot
 

@@ -35,6 +35,23 @@ When practical, show changes in a compact format:
 
 For code or file edits, include clickable file references and avoid vague summaries like "updated docs" when specific files changed.
 
+## Code Documentation Rule
+
+All code developed for this project must be documented and stored for future reference.
+
+For every script, notebook, SQL file, Power BI artifact, or automation, Codex should ensure there is a nearby or linked documentation note that explains:
+
+- Purpose
+- Inputs
+- Outputs
+- How to run it
+- Dependencies
+- Expected side effects
+- Validation checks
+- Related project docs or backlog items
+
+Code should not be treated as complete unless the documentation explains how a future Codex session or Martin can safely reuse it.
+
 ## Analytics Engineering Principles
 
 - Start with the business process and grain before naming tables.
