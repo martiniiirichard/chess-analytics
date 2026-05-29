@@ -8,15 +8,15 @@
 
 **Branch:** `main` - up to date with origin
 **Last pushed commit:** check with `git log -1 --oneline`
-**Pilot month:** `2013-01` (121,332 games)
+**Processed months:** `2013-01` and `2013-02` (245,293 total games)
 
 ### Pipeline Status
 
 | Layer | Script | Status | Output |
 |---|---|---|---|
-| Bronze | `src/data_warehouse/ingestion/ingest_bronze_game.py` | Done + committed | `data/bronze/game/source_month=2013-01/bronze_game.parquet` |
-| Silver | `src/data_warehouse/transforms/build_silver_game.py` | Done + committed | `data/silver/game/source_month=2013-01/silver_game.parquet` |
-| Gold | `src/data_warehouse/transforms/build_gold_game.py` | Done + committed | `data/gold/game/source_month=2013-01/fact_game.parquet` |
+| Bronze | `src/data_warehouse/ingestion/ingest_bronze_game.py` | Done + committed | `data/bronze/game/source_month=YYYY-MM/bronze_game.parquet` |
+| Silver | `src/data_warehouse/transforms/build_silver_game.py` | Done + committed | `data/silver/game/source_month=YYYY-MM/silver_game.parquet` |
+| Gold | `src/data_warehouse/transforms/build_gold_game.py` | Done + committed | `data/gold/game/source_month=YYYY-MM/fact_game.parquet` |
 | DuckDB Load | `src/data_warehouse/load/load_duckdb.py` | Done + committed | `data/warehouse/chess_analytics.duckdb` (gitignored) |
 
 ### Gold Outputs
@@ -24,7 +24,7 @@
 Gold fact output:
 
 ```text
-data/gold/game/source_month=2013-01/fact_game.parquet
+data/gold/game/source_month=YYYY-MM/fact_game.parquet
 ```
 
 Gold dimensions are stored in:
@@ -35,15 +35,15 @@ data/gold/dimensions/
 
 | File | Rows | Notes |
 |---|---:|---|
-| `fact_game.parquet` | 121,332 | 8 FK columns, full lineage |
-| `dim_date.parquet` | 32 | Year/month/quarter/DOW |
-| `dim_white_rating.parquet` | 1,346 | PK = `WhiteRating_SK` |
-| `dim_black_rating.parquet` | 1,358 | PK = `BlackRating_SK` |
-| `dim_time_control.parquet` | 396 | Promoted from Silver |
+| `fact_game.parquet` | 245,293 | Loaded in DuckDB across two fact partitions |
+| `dim_date.parquet` | 60 | Year/month/quarter/DOW |
+| `dim_white_rating.parquet` | 1,436 | PK = `WhiteRating_SK` |
+| `dim_black_rating.parquet` | 1,449 | PK = `BlackRating_SK` |
+| `dim_time_control.parquet` | 478 | Rebuilt globally from all Silver partitions |
 | `dim_termination.parquet` | 2 | Promoted from Silver |
 | `dim_rating_difference_bucket.parquet` | 7 | Promoted from Silver |
-| `dim_eco.parquet` | 412 | ECO categories A-E |
-| `dim_opening_variation.parquet` | 1,847 | FK to dim_eco |
+| `dim_eco.parquet` | 438 | ECO categories A-E |
+| `dim_opening_variation.parquet` | 2,077 | FK to dim_eco |
 
 ---
 
@@ -67,25 +67,25 @@ data/gold/dimensions/
 # Activate venv from project root.
 .venv\Scripts\activate
 
-# Bronze
-python src/data_warehouse/ingestion/ingest_bronze_game.py --source-month 2013-01 --output-root data
+# Bronze example
+python src/data_warehouse/ingestion/ingest_bronze_game.py --input data/raw/lichess/standard/2013-02/lichess_db_standard_rated_2013-02.pgn.zst --source-month 2013-02 --source-dataset standard_rated --source-url https://database.lichess.org/standard/lichess_db_standard_rated_2013-02.pgn.zst --output-root data
 
 # Silver
-python src/data_warehouse/transforms/build_silver_game.py --source-month 2013-01 --output-root data
+python src/data_warehouse/transforms/build_silver_game.py --source-month 2013-02 --output-root data
 
 # Gold
-python src/data_warehouse/transforms/build_gold_game.py --source-month 2013-01 --output-root data
+python src/data_warehouse/transforms/build_gold_game.py --source-month 2013-02 --output-root data
 
 # DuckDB load. Run after Gold; loads all source_month partitions automatically.
-python src/data_warehouse/load/load_duckdb.py --source-month 2013-01 --output-root data
+python src/data_warehouse/load/load_duckdb.py --source-month 2013-02 --output-root data
 ```
 
 ---
 
 ## Next Steps
 
-1. Run additional Lichess months to grow the dataset.
-2. Decide dimension merge/rebuild strategy before processing many months.
+1. Decide whether to add a single orchestration script for monthly processing.
+2. Run additional Lichess months to grow the dataset.
 3. Connect `chess_analytics.duckdb` to Power BI or evaluate direct Parquet/DuckDB connector paths.
 4. Build `dim_player` when player analytics are needed; pre-seed Unknown member (`SK = 0`).
 5. Define move-grain source-to-target only after game-grain reporting proves useful.
@@ -95,7 +95,7 @@ python src/data_warehouse/load/load_duckdb.py --source-month 2013-01 --output-ro
 ## Open Decisions
 
 - **DuckDB persistence:** Query-only over Parquet vs persisted DuckDB database. Current local implementation creates a persisted DuckDB database for convenience while preserving Parquet as the portable warehouse storage.
-- **Multi-month strategy:** Keep separate `source_month=` partition files. Dimension rebuild/merge strategy must be confirmed before many months are loaded.
+- **Multi-month strategy:** Keep separate `source_month=` fact partition files. Gold dimensions rebuild globally from all available Silver game partitions during the local prototype.
 
 ---
 

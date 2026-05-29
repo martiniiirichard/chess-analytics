@@ -112,13 +112,16 @@ def validate_load(
 
     # -- Gold manifest cross-check --------------------------------------------
     if gold_manifest_path and gold_manifest_path.exists():
-        manifest = json.loads(gold_manifest_path.read_text(encoding="utf-8"))
-        expected = manifest.get("QualityCounts", {}).get("FactRowsWritten")
+        manifest_root = gold_manifest_path.parent.parent
+        expected = 0
+        for manifest_file in sorted(manifest_root.glob("source_month=*/gold_game_manifest.json")):
+            manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
+            expected += manifest.get("QualityCounts", {}).get("FactRowsWritten", 0)
         actual = row_counts.get("fact_game", 0)
-        if expected is not None and actual != expected:
+        if actual != expected:
             status = "fail"
             messages.append(
-                f"fact_game has {actual} rows in DuckDB but Gold manifest reports {expected}."
+                f"fact_game has {actual} rows in DuckDB but Gold manifests report {expected}."
             )
 
     if status == "pass":

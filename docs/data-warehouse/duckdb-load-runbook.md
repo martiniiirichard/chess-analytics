@@ -70,7 +70,7 @@ dim_opening_variation
 Validation checks:
 
 - Each loaded table has more than zero rows.
-- `fact_game` row count matches the Gold manifest when available.
+- `fact_game` row count matches the sum of available Gold manifests.
 - Fact foreign keys map to the loaded dimension keys.
 
 ## First Validated Pilot Result
@@ -92,6 +92,23 @@ dim_opening_variation = 1847
 
 ```text
 chess_analytics.duckdb = 8663040 bytes
+```
+
+## Second-Month Validated Result
+
+After processing `2013-01` and `2013-02`:
+
+```text
+ValidationStatus = pass
+fact_game = 245293
+dim_date = 60
+dim_white_rating = 1436
+dim_black_rating = 1449
+dim_time_control = 478
+dim_termination = 2
+dim_rating_difference_bucket = 7
+dim_eco = 438
+dim_opening_variation = 2077
 ```
 
 ## Notes

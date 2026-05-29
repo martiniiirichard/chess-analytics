@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -19,6 +20,7 @@ import pyarrow.parquet as pq
 TRANSFORM_VERSION = "gold-game-0.1.0"
 SCHEMA_VERSION = "gold-game-v1"
 UNKNOWN_RATING_SENTINEL = 100
+TIME_CONTROL_PATTERN = re.compile(r"^(?P<initial>\d+)\+(?P<increment>\d+)$")
 
 ECO_CATEGORY_NAMES: dict[str, str] = {
     "A": "Flank Openings",
@@ -165,6 +167,54 @@ DIM_TIME_CONTROL_SCHEMA = pa.schema(
 )
 
 
+def classify_time_control(estimated_game_seconds: int | None) -> str:
+    if estimated_game_seconds is None:
+        return "Unknown"
+    if estimated_game_seconds < 180:
+        return "Bullet"
+    if estimated_game_seconds < 480:
+        return "Blitz"
+    if estimated_game_seconds < 1500:
+        return "Rapid"
+    return "Classical"
+
+
+def build_dim_time_control(silver_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Rebuild dim_time_control globally from all Silver game partitions."""
+    members: dict[int, dict[str, Any]] = {}
+    for row in silver_rows:
+        sk = row["TimeControl_SK"]
+        raw_text = (row.get("TimeControlRaw") or "").strip()
+        match = TIME_CONTROL_PATTERN.match(raw_text)
+        if not match:
+            members[sk] = {
+                "TimeControl_SK": sk,
+                "TimeControlRaw": raw_text or "Unknown",
+                "InitialSeconds": None,
+                "IncrementSeconds": None,
+                "EstimatedGameSeconds": None,
+                "TimeControlClass": "Unknown",
+                "TimeControlType": "unknown",
+                "IsParsed": 0,
+            }
+            continue
+
+        initial_seconds = int(match.group("initial"))
+        increment_seconds = int(match.group("increment"))
+        estimated_game_seconds = initial_seconds + (40 * increment_seconds)
+        members[sk] = {
+            "TimeControl_SK": sk,
+            "TimeControlRaw": raw_text,
+            "InitialSeconds": initial_seconds,
+            "IncrementSeconds": increment_seconds,
+            "EstimatedGameSeconds": estimated_game_seconds,
+            "TimeControlClass": classify_time_control(estimated_game_seconds),
+            "TimeControlType": "increment",
+            "IsParsed": 1,
+        }
+    return sorted(members.values(), key=lambda r: (r["TimeControl_SK"], r["TimeControlRaw"]))
+
+
 # ------------------------------------------------------------------------------
 # DIM_TERMINATION  (promoted from Silver, schema unchanged)
 # ------------------------------------------------------------------------------
@@ -178,6 +228,32 @@ DIM_TERMINATION_SCHEMA = pa.schema(
         pa.field("MappingStatus", pa.string()),
     ]
 )
+
+
+def build_dim_termination(silver_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Rebuild dim_termination globally from all Silver game partitions."""
+    members: dict[int, dict[str, Any]] = {}
+    for row in silver_rows:
+        sk = row["Termination_SK"]
+        raw_text = (row.get("TerminationRaw") or "").strip()
+        if not raw_text:
+            members[sk] = {
+                "Termination_SK": sk,
+                "TerminationRaw": "Unknown",
+                "TerminationLabel": "Unknown",
+                "IsTimeForfeit": 0,
+                "MappingStatus": "unknown",
+            }
+            continue
+
+        members[sk] = {
+            "Termination_SK": sk,
+            "TerminationRaw": raw_text,
+            "TerminationLabel": raw_text,
+            "IsTimeForfeit": 1 if raw_text == "Time forfeit" else 0,
+            "MappingStatus": "mapped",
+        }
+    return sorted(members.values(), key=lambda r: (r["Termination_SK"], r["TerminationRaw"]))
 
 
 # ------------------------------------------------------------------------------
@@ -449,22 +525,34 @@ def write_parquet(rows: list[dict[str, Any]], output_path: Path, schema: pa.Sche
     pq.write_table(table, output_path, compression="zstd")
 
 
+def read_all_silver_game_rows(output_root: Path) -> list[dict[str, Any]]:
+    silver_paths = sorted((output_root / "silver" / "game").glob("source_month=*/silver_game.parquet"))
+    if not silver_paths:
+        raise FileNotFoundError("No Silver game partitions found.")
+
+    rows: list[dict[str, Any]] = []
+    for path in silver_paths:
+        rows.extend(pq.read_table(path).to_pylist())
+    return rows
+
+
 def build_gold_outputs(
     silver_rows: list[dict[str, Any]],
+    all_silver_rows: list[dict[str, Any]],
     silver_dim_root: Path,
     transform_run_id: str,
 ) -> dict[str, list[dict[str, Any]]]:
-    eco_sk_map, dim_eco = build_dim_eco(silver_rows)
-    opening_sk_map, dim_opening = build_dim_opening_variation(silver_rows, eco_sk_map)
+    eco_sk_map, dim_eco = build_dim_eco(all_silver_rows)
+    opening_sk_map, dim_opening = build_dim_opening_variation(all_silver_rows, eco_sk_map)
     return {
         "fact_game": build_fact_game(silver_rows, eco_sk_map, opening_sk_map, transform_run_id),
-        "dim_date": build_dim_date(silver_rows),
-        "dim_white_rating": build_dim_rating(silver_rows, "WhiteRating_SK"),
-        "dim_black_rating": build_dim_rating(silver_rows, "BlackRating_SK"),
+        "dim_date": build_dim_date(all_silver_rows),
+        "dim_white_rating": build_dim_rating(all_silver_rows, "WhiteRating_SK"),
+        "dim_black_rating": build_dim_rating(all_silver_rows, "BlackRating_SK"),
         "dim_eco": dim_eco,
         "dim_opening_variation": dim_opening,
-        "dim_time_control": pq.read_table(silver_dim_root / "dim_time_control.parquet").to_pylist(),
-        "dim_termination": pq.read_table(silver_dim_root / "dim_termination.parquet").to_pylist(),
+        "dim_time_control": build_dim_time_control(all_silver_rows),
+        "dim_termination": build_dim_termination(all_silver_rows),
         "dim_rating_difference_bucket": pq.read_table(silver_dim_root / "dim_rating_difference_bucket.parquet").to_pylist(),
     }
 
@@ -485,7 +573,8 @@ def transform(args: argparse.Namespace) -> dict[str, Any]:
     started_at_utc = datetime.now(UTC).isoformat()
 
     silver_rows = pq.read_table(silver_input).to_pylist()
-    outputs = build_gold_outputs(silver_rows, silver_dim_root, transform_run_id)
+    all_silver_rows = read_all_silver_game_rows(output_root)
+    outputs = build_gold_outputs(silver_rows, all_silver_rows, silver_dim_root, transform_run_id)
 
     gold_root = output_root / "gold"
     fact_output          = gold_root / "game" / f"source_month={args.source_month}" / "fact_game.parquet"
@@ -539,6 +628,7 @@ def transform(args: argparse.Namespace) -> dict[str, Any]:
         "TransformVersion": TRANSFORM_VERSION,
         "SchemaVersion": SCHEMA_VERSION,
         "QualityCounts": quality_counts,
+        "AllSilverRowsReadForDimensions": len(all_silver_rows),
         "ValidationStatus": validation_status,
         "ValidationMessages": validation_messages,
     }

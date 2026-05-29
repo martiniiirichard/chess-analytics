@@ -53,9 +53,12 @@ data/gold/manifests/source_month=2013-01/gold_game_manifest.json
 The Gold transform:
 
 - Builds `fact_game` at game grain.
+- Writes only the requested `source_month` fact partition.
+- Rebuilds dimensions globally from all available Silver game partitions.
 - Builds `dim_date` from Silver `GameDate`.
 - Builds separate `dim_white_rating` and `dim_black_rating` role-playing dimensions.
-- Promotes Silver `dim_time_control`, `dim_termination`, and `dim_rating_difference_bucket`.
+- Rebuilds `dim_time_control` and `dim_termination` from Silver game fields.
+- Promotes static `dim_rating_difference_bucket`.
 - Builds `dim_eco` from observed ECO codes.
 - Builds `dim_opening_variation` from observed Lichess opening names and relates each variation to `dim_eco`.
 - Writes explicit Parquet schemas with `zstd` compression.
@@ -93,6 +96,25 @@ UnmappedECORows = 0
 UnmappedOpeningRows = 0
 ```
 
+## Second-Month Validated Result
+
+After processing `2013-01` and `2013-02`, Gold dimensions were rebuilt from both Silver partitions.
+
+```text
+SourceMonth = 2013-02
+ValidationStatus = pass
+SilverRowsRead = 123961
+FactRowsWritten = 123961
+AllSilverRowsReadForDimensions = 245293
+DimDateRowsWritten = 60
+DimWhiteRatingRowsWritten = 1436
+DimBlackRatingRowsWritten = 1449
+DimECORowsWritten = 438
+DimOpeningVariationRowsWritten = 2077
+UnmappedECORows = 0
+UnmappedOpeningRows = 0
+```
+
 ## Output Sizes From Pilot
 
 ```text
@@ -113,4 +135,4 @@ Gold is the first layer intended to look like a Power BI semantic model source.
 
 Keep `fact_game` narrow. Long descriptive text belongs in dimensions.
 
-Before processing many months, confirm how global dimensions should be rebuilt or merged across months.
+Global dimensions are rebuilt from all currently available Silver game partitions during the local prototype.

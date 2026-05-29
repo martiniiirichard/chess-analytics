@@ -52,6 +52,9 @@ Use this backlog when asking "what next?"
 | CHESS-BL-021 | Build Gold game star schema transform | Data warehouse | Done | P1 | Gold `fact_game` and starter dimensions implemented and validated for `2013-01` |
 | CHESS-BL-022 | Build DuckDB local warehouse load | Data warehouse | Done | P1 | Gold Parquet loaded into local DuckDB with FK validation |
 | CHESS-BL-023 | Add Gold and DuckDB runbooks | Data warehouse | Done | P1 | Operational runbooks added under `docs/data-warehouse/` |
+| CHESS-BL-024 | Define multi-month processing strategy | Data warehouse | Done | P1 | Use month-partitioned facts and globally rebuilt dimensions during local prototype |
+| CHESS-BL-025 | Run second-month pipeline pilot | Data warehouse | Done | P1 | `2013-02` processed through Bronze, Silver, Gold, and DuckDB validation |
+| CHESS-BL-026 | Rebuild Gold dimensions from all Silver partitions | Data warehouse | Done | P1 | Fixed multi-month FK failures by rebuilding Gold dimensions globally |
 
 ## Recently Completed
 
@@ -69,6 +72,7 @@ Use this backlog when asking "what next?"
 | CHESS-DONE-010 | Silver game transformation implemented | Local transform writes Silver game, time-control dimension, termination dimension, rating-difference bucket dimension, and manifest |
 | CHESS-DONE-011 | Gold game star schema implemented | Local transform writes `fact_game`, date/rating/time-control/termination/rating-bucket/ECO/opening dimensions, and manifest |
 | CHESS-DONE-012 | DuckDB warehouse load implemented | Local load creates `chess_analytics.duckdb` from Gold Parquet and validates fact-to-dimension relationships |
+| CHESS-DONE-013 | Second-month pipeline pilot completed | `2013-02` added; DuckDB validates `245293` fact rows across `2013-01` and `2013-02` |
 
 ## Parking Lot
 
