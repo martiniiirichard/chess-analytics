@@ -30,7 +30,7 @@ DIMENSION_TABLES = [
 
 
 # ------------------------------------------------------------------------------
-# LOAD — FACT_GAME
+# LOAD - FACT_GAME
 # fact_game is partitioned by source_month; glob picks up all loaded months.
 # ------------------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ def load_fact_game(conn: duckdb.DuckDBPyConnection, gold_root: Path) -> int:
 
 
 # ------------------------------------------------------------------------------
-# LOAD — DIMENSIONS
+# LOAD - DIMENSIONS
 # Dimensions are single files; CREATE OR REPLACE replaces on each run.
 # ------------------------------------------------------------------------------
 

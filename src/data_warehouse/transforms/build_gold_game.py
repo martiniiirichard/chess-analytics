@@ -122,7 +122,7 @@ def build_dim_rating(silver_rows: list[dict[str, Any]], rating_field: str) -> li
     """Build a rating dimension from all distinct values of rating_field in Silver.
 
     The PK column in the output uses rating_field as its name so it matches
-    the FK column name in fact_game — required for Power BI auto-detection.
+    the FK column name in fact_game - required for Power BI auto-detection.
     """
     members: dict[int, dict[str, Any]] = {}
     for row in silver_rows:

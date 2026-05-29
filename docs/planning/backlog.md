@@ -45,10 +45,13 @@ Use this backlog when asking "what next?"
 | CHESS-BL-014 | Define player dimension strategy | Semantic modeling | Proposed | P2 | Needed for player behavior and sandbagging analysis |
 | CHESS-BL-015 | Define player rating event model | Semantic modeling | Proposed | Research | Needed for rating-growth/sandbagging research |
 | CHESS-BL-016 | Define Power BI semantic model plan | Power BI | Proposed | P2 | Measures, relationships, display folders, visual conventions |
-| CHESS-BL-017 | Define local warehouse physical design | Data warehouse | In Progress | P1 | Use portable Parquet-backed medallion layers locally; DuckDB as query engine |
+| CHESS-BL-017 | Define local warehouse physical design | Data warehouse | Done | P1 | Portable Parquet-backed medallion layers locally; DuckDB as query engine |
 | CHESS-BL-018 | Plan Fabric migration path | Fabric | Proposed | P2 | Later move from on-prem/laptop prototype to Fabric |
 | CHESS-BL-019 | Explore Synoptic Panel chess board visual | Power BI | Proposed | P2 | Later visual idea: use Synoptic Panel or a similar custom visual to make board-state analysis distinctive |
 | CHESS-BL-020 | Define Silver game transformation guide | Data warehouse | Done | P1 | Silver game transformation implemented and validated for `2013-01` |
+| CHESS-BL-021 | Build Gold game star schema transform | Data warehouse | Done | P1 | Gold `fact_game` and starter dimensions implemented and validated for `2013-01` |
+| CHESS-BL-022 | Build DuckDB local warehouse load | Data warehouse | Done | P1 | Gold Parquet loaded into local DuckDB with FK validation |
+| CHESS-BL-023 | Add Gold and DuckDB runbooks | Data warehouse | Done | P1 | Operational runbooks added under `docs/data-warehouse/` |
 
 ## Recently Completed
 
@@ -64,6 +67,8 @@ Use this backlog when asking "what next?"
 | CHESS-DONE-008 | Bronze game ingestion implemented | Local parser writes Bronze Parquet, raw game sample Parquet, and ingestion manifest |
 | CHESS-DONE-009 | Bronze validation implemented | Row-level sanity checks and output Parquet schema checks pass for `2013-01` |
 | CHESS-DONE-010 | Silver game transformation implemented | Local transform writes Silver game, time-control dimension, termination dimension, rating-difference bucket dimension, and manifest |
+| CHESS-DONE-011 | Gold game star schema implemented | Local transform writes `fact_game`, date/rating/time-control/termination/rating-bucket/ECO/opening dimensions, and manifest |
+| CHESS-DONE-012 | DuckDB warehouse load implemented | Local load creates `chess_analytics.duckdb` from Gold Parquet and validates fact-to-dimension relationships |
 
 ## Parking Lot
 

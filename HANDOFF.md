@@ -1,4 +1,4 @@
-# Chess Analytics — Handoff State
+# Chess Analytics - Handoff State
 
 > Update this file at every natural stopping point. Paste it into a new session to resume without context loss.
 
@@ -6,23 +6,35 @@
 
 ## Current State
 
-**Branch:** `main` — up to date with origin  
-**Last commit:** `5ea1884` — Implement Gold game star schema transform  
+**Branch:** `main` - up to date with origin
+**Last pushed commit:** check with `git log -1 --oneline`
 **Pilot month:** `2013-01` (121,332 games)
 
 ### Pipeline Status
 
 | Layer | Script | Status | Output |
 |---|---|---|---|
-| Bronze | `src/data_warehouse/ingestion/ingest_bronze_game.py` | ✅ Done + committed | `data/bronze/game/source_month=2013-01/bronze_game.parquet` |
-| Silver | `src/data_warehouse/transforms/build_silver_game.py` | ✅ Done + committed | `data/silver/game/source_month=2013-01/silver_game.parquet` |
-| Gold | `src/data_warehouse/transforms/build_gold_game.py` | ✅ Done + committed | `data/gold/game/source_month=2013-01/fact_game.parquet` |
-| DuckDB Load | `src/data_warehouse/load/load_duckdb.py` | ✅ Done + committed | `data/warehouse/chess_analytics.duckdb` (gitignored) |
+| Bronze | `src/data_warehouse/ingestion/ingest_bronze_game.py` | Done + committed | `data/bronze/game/source_month=2013-01/bronze_game.parquet` |
+| Silver | `src/data_warehouse/transforms/build_silver_game.py` | Done + committed | `data/silver/game/source_month=2013-01/silver_game.parquet` |
+| Gold | `src/data_warehouse/transforms/build_gold_game.py` | Done + committed | `data/gold/game/source_month=2013-01/fact_game.parquet` |
+| DuckDB Load | `src/data_warehouse/load/load_duckdb.py` | Done + committed | `data/warehouse/chess_analytics.duckdb` (gitignored) |
 
-### Gold Outputs (all in `data/gold/dimensions/`)
+### Gold Outputs
+
+Gold fact output:
+
+```text
+data/gold/game/source_month=2013-01/fact_game.parquet
+```
+
+Gold dimensions are stored in:
+
+```text
+data/gold/dimensions/
+```
 
 | File | Rows | Notes |
-|---|---|---|
+|---|---:|---|
 | `fact_game.parquet` | 121,332 | 8 FK columns, full lineage |
 | `dim_date.parquet` | 32 | Year/month/quarter/DOW |
 | `dim_white_rating.parquet` | 1,346 | PK = `WhiteRating_SK` |
@@ -30,29 +42,29 @@
 | `dim_time_control.parquet` | 396 | Promoted from Silver |
 | `dim_termination.parquet` | 2 | Promoted from Silver |
 | `dim_rating_difference_bucket.parquet` | 7 | Promoted from Silver |
-| `dim_eco.parquet` | 412 | ECO categories A–E |
+| `dim_eco.parquet` | 412 | ECO categories A-E |
 | `dim_opening_variation.parquet` | 1,847 | FK to dim_eco |
 
 ---
 
 ## Key Architecture Decisions
 
-- **Storage:** Parquet (zstd). DuckDB is the query engine *over* Parquet — not a separate store.
+- **Storage:** Parquet (zstd). DuckDB is the query engine over Parquet, not a separate system of record.
 - **Surrogate keys:** SHA-256 63-bit stable keys. Unknown/sentinel members use `SK = 0`.
 - **Unknown rating sentinel:** `100` (not null). Anonymous `"?"` players in Bronze map to Elo = 100 in Silver/Gold.
 - **Rating dims:** Two separate tables (`dim_white_rating`, `dim_black_rating`) so both Power BI relationships stay active. PK column name matches FK name in `fact_game` for auto-detection.
-- **Rating bands:** 200-point intervals; below 800 grouped as "Under 800"; 2200+ open-ended.
-- **Opening model:** `dim_eco → dim_opening_variation → fact_game`.
-- **Player dimension:** Deferred. `"?"` player names pass through Silver/Gold untouched; Gold will need a `dim_player` with Unknown member (SK=0) when built.
+- **Rating bands:** 200-point intervals; below 800 grouped as `Under 800`; 2200+ open-ended.
+- **Opening model:** `dim_eco -> dim_opening_variation -> fact_game`.
+- **Player dimension:** Deferred. `"?"` player names pass through Silver/Gold untouched; Gold will need a `dim_player` with Unknown member (`SK = 0`) when built.
 - **Move-grain fact:** Deferred until game-grain warehouse is stable.
-- **FEN / engine evals / ML:** All deferred.
+- **FEN / engine evals / ML:** Deferred.
 
 ---
 
 ## Run Commands
 
 ```powershell
-# Activate venv (from project root)
+# Activate venv from project root.
 .venv\Scripts\activate
 
 # Bronze
@@ -64,32 +76,32 @@ python src/data_warehouse/transforms/build_silver_game.py --source-month 2013-01
 # Gold
 python src/data_warehouse/transforms/build_gold_game.py --source-month 2013-01 --output-root data
 
-# DuckDB load (run after Gold; loads all source_month partitions automatically)
+# DuckDB load. Run after Gold; loads all source_month partitions automatically.
 python src/data_warehouse/load/load_duckdb.py --source-month 2013-01 --output-root data
 ```
 
 ---
 
-## Next Steps (in order)
+## Next Steps
 
-1. **Backlog update** — mark Gold + DuckDB load as done in `docs/planning/backlog.md`.
-2. **Runbooks** — write Gold transform and DuckDB load runbooks under `docs/data-warehouse/`.
-3. **Additional months** — run pipeline for more Lichess months to grow the dataset.
-4. **Power BI connection** — connect `chess_analytics.duckdb` to a Power BI semantic model via DuckDB ODBC/connector.
-5. **dim_player** — build when player analytics are needed; Unknown member (SK=0) pre-seeded.
+1. Run additional Lichess months to grow the dataset.
+2. Decide dimension merge/rebuild strategy before processing many months.
+3. Connect `chess_analytics.duckdb` to Power BI or evaluate direct Parquet/DuckDB connector paths.
+4. Build `dim_player` when player analytics are needed; pre-seed Unknown member (`SK = 0`).
+5. Define move-grain source-to-target only after game-grain reporting proves useful.
 
 ---
 
 ## Open Decisions
 
-- **DuckDB persistence:** Query-only (no `.duckdb` file as store) vs. persisted DuckDB database. Currently plan is query-only for Fabric portability — revisit when doing Power BI work.
-- **Multi-month strategy:** Append new months to existing Parquet, or separate partition files per month? Currently partitioned by `source_month=` folder.
+- **DuckDB persistence:** Query-only over Parquet vs persisted DuckDB database. Current local implementation creates a persisted DuckDB database for convenience while preserving Parquet as the portable warehouse storage.
+- **Multi-month strategy:** Keep separate `source_month=` partition files. Dimension rebuild/merge strategy must be confirmed before many months are loaded.
 
 ---
 
 ## Gotchas / Non-Obvious Decisions
 
-- Silver `TRANSFORM_VERSION = "silver-game-0.2.0"` — v0.1.0 had null ratings passed through from Bronze. v0.2.0 normalises nulls to sentinel 100 and recomputes `AbsRatingDifference` and `RatingDifferenceBucket_SK` in Silver.
-- Pre-refactor reference copy of Silver at `src/data_warehouse/transforms/_archive/build_silver_game_v0.2.0.py`.
-- Bronze manifest is at `data/bronze/manifests/source_month=2013-01/ingestion_manifest.json` (not co-located with the Parquet).
-- The `"?"` player names (90 White, 168 Black) are NOT cleaned in Silver or Gold — they remain as-is until `dim_player` is built.
+- Silver `TRANSFORM_VERSION = "silver-game-0.2.0"` normalizes null ratings to sentinel `100` and recomputes `AbsRatingDifference` and `RatingDifferenceBucket_SK` in Silver.
+- Pre-refactor reference copy of Silver lives at `src/data_warehouse/transforms/_archive/build_silver_game_v0.2.0.py`.
+- Bronze manifest is at `data/bronze/manifests/source_month=2013-01/ingestion_manifest.json`, not co-located with the Parquet.
+- The `"?"` player names (90 White, 168 Black in the pilot month) are not cleaned in Silver or Gold. They remain as-is until `dim_player` is built.
