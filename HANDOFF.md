@@ -68,8 +68,10 @@ data/gold/dimensions/
 # Activate venv from project root.
 .venv\Scripts\activate
 
-# Monthly orchestration
-python src/data_warehouse/orchestration/process_month.py --source-month 2013-03 --output-root data
+# Standard local monthly workflow:
+# 1. Download raw file with PowerShell Invoke-WebRequest.
+# 2. Run Python orchestration after the raw file exists.
+python src/data_warehouse/orchestration/process_month.py --source-month YYYY-MM --output-root data
 ```
 
 ---
@@ -97,4 +99,4 @@ python src/data_warehouse/orchestration/process_month.py --source-month 2013-03 
 - Pre-refactor reference copy of Silver lives at `src/data_warehouse/transforms/_archive/build_silver_game_v0.2.0.py`.
 - Bronze manifest is at `data/bronze/manifests/source_month=2013-01/ingestion_manifest.json`, not co-located with the Parquet.
 - The `"?"` player names (90 White, 168 Black in the pilot month) are not cleaned in Silver or Gold. They remain as-is until `dim_player` is built.
-- Python network download can be sandbox-blocked. If that happens, download with PowerShell `Invoke-WebRequest`, then rerun `process_month.py`; it will skip download when the raw file exists.
+- Python network download can be sandbox-blocked. The official local workflow is PowerShell `Invoke-WebRequest` first, then `process_month.py`; it will skip download when the raw file exists.

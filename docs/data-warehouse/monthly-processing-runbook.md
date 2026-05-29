@@ -12,19 +12,43 @@ src/data_warehouse/orchestration/process_month.py
 
 ## Scope
 
-The orchestration script runs:
+The local workflow is:
 
 ```text
-download -> Bronze -> Silver -> Gold -> DuckDB load
+PowerShell download -> Python orchestration -> Bronze -> Silver -> Gold -> DuckDB load
 ```
 
-It stops on the first failed step and writes one month-level manifest when the run succeeds.
+Python network download can be sandbox-blocked. Use PowerShell for the download step, then let the Python orchestrator detect the existing raw file and skip download.
 
-## Pilot Command
+The orchestration script stops on the first failed processing step and writes one month-level manifest when the run succeeds.
+
+## Standard Local Command
 
 ```powershell
+New-Item -ItemType Directory -Force `
+  -Path data\raw\lichess\standard\YYYY-MM | Out-Null
+
+Invoke-WebRequest `
+  -Uri https://database.lichess.org/standard/lichess_db_standard_rated_YYYY-MM.pgn.zst `
+  -OutFile data\raw\lichess\standard\YYYY-MM\lichess_db_standard_rated_YYYY-MM.pgn.zst
+
 .venv\Scripts\python.exe src\data_warehouse\orchestration\process_month.py `
-  --source-month 2013-03 `
+  --source-month YYYY-MM `
+  --output-root data
+```
+
+Example:
+
+```powershell
+New-Item -ItemType Directory -Force `
+  -Path data\raw\lichess\standard\2013-04 | Out-Null
+
+Invoke-WebRequest `
+  -Uri https://database.lichess.org/standard/lichess_db_standard_rated_2013-04.pgn.zst `
+  -OutFile data\raw\lichess\standard\2013-04\lichess_db_standard_rated_2013-04.pgn.zst
+
+.venv\Scripts\python.exe src\data_warehouse\orchestration\process_month.py `
+  --source-month 2013-04 `
   --output-root data
 ```
 
@@ -39,7 +63,7 @@ Optional arguments:
 
 ## Inputs
 
-If the raw file is missing, the script downloads:
+Download source:
 
 ```text
 https://database.lichess.org/standard/lichess_db_standard_rated_YYYY-MM.pgn.zst
@@ -49,6 +73,13 @@ Expected raw path:
 
 ```text
 data/raw/lichess/standard/YYYY-MM/lichess_db_standard_rated_YYYY-MM.pgn.zst
+```
+
+Expected orchestration behavior:
+
+```text
+download step = skipped
+Reason = Raw file already exists.
 ```
 
 ## Outputs
