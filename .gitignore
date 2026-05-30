@@ -6,3 +6,7 @@ data/
 *.db
 .venv/
 __pycache__/
+**/.pbi/cache.abf
+**/.pbi/localSettings.json
+outputs/
+docs/presentations/artifact-build-manifest.json

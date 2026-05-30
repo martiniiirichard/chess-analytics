@@ -1,0 +1,69 @@
+table dim_date
+	lineageTag: acc4606f-b54c-450b-a920-2c559317d9aa
+
+	column Date_SK
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Date_SK
+
+		annotation SummarizationSetBy = Automatic
+
+	column GameDate
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: GameDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column Year
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: Month
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: MonthName
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quarter
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: Quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayOfWeek
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: DayOfWeek
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayOfWeekName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: DayOfWeekName
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_date = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents("C:\\Users\\marti\\OneDrive\\Documents\\New project\\chess-analytics\\data\\gold\\dimensions\\dim_date.parquet"))
+				in
+				    Source
+
+	annotation PBI_ResultType = Table

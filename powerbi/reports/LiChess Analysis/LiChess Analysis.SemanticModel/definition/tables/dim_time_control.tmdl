@@ -1,0 +1,69 @@
+table dim_time_control
+	lineageTag: 9bfcee5c-71ab-4eed-8405-bb6aa8225bbc
+
+	column TimeControl_SK
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: TimeControl_SK
+
+		annotation SummarizationSetBy = Automatic
+
+	column TimeControlRaw
+		dataType: string
+		summarizeBy: none
+		sourceColumn: TimeControlRaw
+
+		annotation SummarizationSetBy = Automatic
+
+	column InitialSeconds
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: InitialSeconds
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncrementSeconds
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: IncrementSeconds
+
+		annotation SummarizationSetBy = Automatic
+
+	column EstimatedGameSeconds
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: EstimatedGameSeconds
+
+		annotation SummarizationSetBy = Automatic
+
+	column TimeControlClass
+		dataType: string
+		summarizeBy: none
+		sourceColumn: TimeControlClass
+
+		annotation SummarizationSetBy = Automatic
+
+	column TimeControlType
+		dataType: string
+		summarizeBy: none
+		sourceColumn: TimeControlType
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsParsed
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: IsParsed
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_time_control = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents("C:\\Users\\marti\\OneDrive\\Documents\\New project\\chess-analytics\\data\\gold\\dimensions\\dim_time_control.parquet"))
+				in
+				    Source
+
+	annotation PBI_ResultType = Table

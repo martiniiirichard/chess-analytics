@@ -19,6 +19,7 @@
 | Gold | `src/data_warehouse/transforms/build_gold_game.py` | Done + committed | `data/gold/game/source_month=YYYY-MM/fact_game.parquet` |
 | DuckDB Load | `src/data_warehouse/load/load_duckdb.py` | Done + committed | `data/warehouse/chess_analytics.duckdb` (gitignored) |
 | Monthly Orchestration | `src/data_warehouse/orchestration/process_month.py` | Done locally | `data/orchestration/source_month=YYYY-MM/monthly_process_manifest.json` |
+| Power BI PBIP | `powerbi/reports/LiChess Analysis/LiChess Analysis.pbip` | Local prototype | Thick PBIP connected to Gold Parquet via TMDL |
 
 ### Gold Outputs
 
@@ -51,6 +52,7 @@ data/gold/dimensions/
 ## Key Architecture Decisions
 
 - **Storage:** Parquet (zstd). DuckDB is the query engine over Parquet, not a separate system of record.
+- **Power BI source path:** The local PBIP semantic model reads Gold Parquet directly. DuckDB ODBC was not available locally, and Parquet is the portable path for Fabric/Databricks later.
 - **Surrogate keys:** SHA-256 63-bit stable keys. Unknown/sentinel members use `SK = 0`.
 - **Unknown rating sentinel:** `100` (not null). Anonymous `"?"` players in Bronze map to Elo = 100 in Silver/Gold.
 - **Rating dims:** Two separate tables (`dim_white_rating`, `dim_black_rating`) so both Power BI relationships stay active. PK column name matches FK name in `fact_game` for auto-detection.
@@ -78,11 +80,12 @@ python src/data_warehouse/orchestration/process_month.py --source-month YYYY-MM 
 
 ## Next Steps
 
-1. Decide whether to keep scaling months or pause for Power BI semantic model prototype.
-2. If scaling, run additional Lichess months through `process_month.py`.
-3. Connect `chess_analytics.duckdb` to Power BI or evaluate direct Parquet/DuckDB connector paths.
-4. Build `dim_player` when player analytics are needed; pre-seed Unknown member (`SK = 0`).
-5. Define move-grain source-to-target only after game-grain reporting proves useful.
+1. Open `powerbi/reports/LiChess Analysis/LiChess Analysis.pbip` in Power BI Desktop and refresh the semantic model.
+2. Compare Power BI `Game Count` to the Gold/DuckDB validated count of `403,928` games for processed months.
+3. Confirm relationships in Model view and run a first visual smoke test by time control, ECO, score %, and rating bands.
+4. If Power BI refresh succeeds, decide whether to keep scaling months or start report-page design.
+5. Build `dim_player` when player analytics are needed; pre-seed Unknown member (`SK = 0`).
+6. Define move-grain source-to-target only after game-grain reporting proves useful.
 
 ---
 
@@ -100,3 +103,6 @@ python src/data_warehouse/orchestration/process_month.py --source-month YYYY-MM 
 - Bronze manifest is at `data/bronze/manifests/source_month=2013-01/ingestion_manifest.json`, not co-located with the Parquet.
 - The `"?"` player names (90 White, 168 Black in the pilot month) are not cleaned in Silver or Gold. They remain as-is until `dim_player` is built.
 - Python network download can be sandbox-blocked. The official local workflow is PowerShell `Invoke-WebRequest` first, then `process_month.py`; it will skip download when the raw file exists.
+- The PBIP uses absolute local paths in Power Query M because this is a local Desktop prototype. Fabric/Databricks migration will require replacing these with workspace/lakehouse-backed sources.
+- Power BI model work should prefer the Power BI MCP server, `pbir-cli`, semantic-model skills, PBIP skills, and TMDL skills before raw file edits when those tools are available.
+- Power BI visual/report design work should use relevant report design, visual review, PBIR format, Deneb, SVG, Python/R visual, and theme skills before editing report pages.

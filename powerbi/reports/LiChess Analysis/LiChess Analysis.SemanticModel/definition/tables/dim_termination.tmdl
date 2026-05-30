@@ -1,0 +1,48 @@
+table dim_termination
+	lineageTag: 959135f3-6f65-4767-a7fe-b0b051727ff5
+
+	column Termination_SK
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Termination_SK
+
+		annotation SummarizationSetBy = Automatic
+
+	column TerminationRaw
+		dataType: string
+		summarizeBy: none
+		sourceColumn: TerminationRaw
+
+		annotation SummarizationSetBy = Automatic
+
+	column TerminationLabel
+		dataType: string
+		summarizeBy: none
+		sourceColumn: TerminationLabel
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsTimeForfeit
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: IsTimeForfeit
+
+		annotation SummarizationSetBy = Automatic
+
+	column MappingStatus
+		dataType: string
+		summarizeBy: none
+		sourceColumn: MappingStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_termination = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents("C:\\Users\\marti\\OneDrive\\Documents\\New project\\chess-analytics\\data\\gold\\dimensions\\dim_termination.parquet"))
+				in
+				    Source
+
+	annotation PBI_ResultType = Table

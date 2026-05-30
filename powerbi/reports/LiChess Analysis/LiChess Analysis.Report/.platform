@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "LiChess Analysis"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "e72f1bff-3b19-4968-bced-5abff484e9d0"
+  }
+}

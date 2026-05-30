@@ -1,0 +1,237 @@
+table fact_game
+	lineageTag: 69600458-ad14-4cea-818d-a76e4abe3f02
+
+	column SourceGameID
+		dataType: string
+		summarizeBy: none
+		sourceColumn: SourceGameID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date_SK
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Date_SK
+
+		annotation SummarizationSetBy = Automatic
+
+	column WhiteRating_SK
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: WhiteRating_SK
+
+		annotation SummarizationSetBy = Automatic
+
+	column BlackRating_SK
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: BlackRating_SK
+
+		annotation SummarizationSetBy = Automatic
+
+	column RatingDifferenceBucket_SK
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: RatingDifferenceBucket_SK
+
+		annotation SummarizationSetBy = Automatic
+
+	column TimeControl_SK
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: TimeControl_SK
+
+		annotation SummarizationSetBy = Automatic
+
+	column Termination_SK
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Termination_SK
+
+		annotation SummarizationSetBy = Automatic
+
+	column ECO_SK
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: ECO_SK
+
+		annotation SummarizationSetBy = Automatic
+
+	column OpeningVariation_SK
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: OpeningVariation_SK
+
+		annotation SummarizationSetBy = Automatic
+
+	column WhiteScore
+		dataType: double
+		summarizeBy: none
+		sourceColumn: WhiteScore
+
+		annotation SummarizationSetBy = Automatic
+
+	column BlackScore
+		dataType: double
+		summarizeBy: none
+		sourceColumn: BlackScore
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsWhiteWin
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: IsWhiteWin
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsBlackWin
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: IsBlackWin
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsDraw
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: IsDraw
+
+		annotation SummarizationSetBy = Automatic
+
+	column PlyCount
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: PlyCount
+
+		annotation SummarizationSetBy = Automatic
+
+	column AbsRatingDifference
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: AbsRatingDifference
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsTimeForfeit
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: IsTimeForfeit
+
+		annotation SummarizationSetBy = Automatic
+
+	column SourceMonth
+		dataType: string
+		summarizeBy: none
+		sourceColumn: SourceMonth
+
+		annotation SummarizationSetBy = Automatic
+
+	column BronzeIngestionRunID
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: BronzeIngestionRunID
+
+		annotation SummarizationSetBy = Automatic
+
+	column SilverTransformRunID
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: SilverTransformRunID
+
+		annotation SummarizationSetBy = Automatic
+
+	column GoldTransformRunID
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: GoldTransformRunID
+
+		annotation SummarizationSetBy = Automatic
+
+	column GoldTransformVersion
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: GoldTransformVersion
+
+		annotation SummarizationSetBy = Automatic
+
+	column SchemaVersion
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: SchemaVersion
+
+		annotation SummarizationSetBy = Automatic
+
+	measure 'Game Count' =
+			COUNTROWS ( fact_game )
+		formatString: #,##0
+		displayFolder: 01. Core Metrics
+		lineageTag: c1ca966b-4aed-46c9-85a6-3723f96d499d
+
+	measure 'White Score %' =
+			DIVIDE ( SUM ( fact_game[WhiteScore] ), [Game Count] )
+		formatString: 0.0%
+		displayFolder: 01. Core Metrics
+		lineageTag: 680a03c2-f64e-48ee-a77d-98e447a7685d
+
+	measure 'Black Score %' =
+			DIVIDE ( SUM ( fact_game[BlackScore] ), [Game Count] )
+		formatString: 0.0%
+		displayFolder: 01. Core Metrics
+		lineageTag: 8c394a91-c672-495f-91c8-c90a1849388b
+
+	measure 'White Win Rate' =
+			DIVIDE ( SUM ( fact_game[IsWhiteWin] ), [Game Count] )
+		formatString: 0.0%
+		displayFolder: 01. Core Metrics
+		lineageTag: f2c5d6ec-9ddd-4e3d-81f2-245680d4e89f
+
+	measure 'Black Win Rate' =
+			DIVIDE ( SUM ( fact_game[IsBlackWin] ), [Game Count] )
+		formatString: 0.0%
+		displayFolder: 01. Core Metrics
+		lineageTag: ea7f7f2f-a1c9-41a3-94a6-e7bd81a201e4
+
+	measure 'Draw Rate' =
+			DIVIDE ( SUM ( fact_game[IsDraw] ), [Game Count] )
+		formatString: 0.0%
+		displayFolder: 01. Core Metrics
+		lineageTag: 84b14e7f-7191-47ae-af27-c0ce08d1e410
+
+	measure 'Time Forfeit Count' =
+			CALCULATE ( [Game Count], dim_termination[IsTimeForfeit] = 1 )
+		formatString: #,##0
+		displayFolder: 02. Termination
+		lineageTag: 0f5f9214-74a2-4671-adb2-68cb6c602b41
+
+	measure 'Time Forfeit Rate' =
+			DIVIDE ( [Time Forfeit Count], [Game Count] )
+		formatString: 0.0%
+		displayFolder: 02. Termination
+		lineageTag: 90f5bcfc-0b7b-4f9b-99fc-1a60f352baf3
+
+	partition fact_game = m
+		mode: import
+		source =
+				let
+				    Source = Folder.Files("C:\\Users\\marti\\OneDrive\\Documents\\New project\\chess-analytics\\data\\gold\\game"),
+				    FilteredRows = Table.SelectRows(Source, each [Name] = "fact_game.parquet"),
+				    AddedData = Table.AddColumn(FilteredRows, "Data", each Parquet.Document([Content])),
+				    Combined = Table.Combine(AddedData[Data])
+				in
+				    Combined
+
+	annotation PBI_ResultType = Table

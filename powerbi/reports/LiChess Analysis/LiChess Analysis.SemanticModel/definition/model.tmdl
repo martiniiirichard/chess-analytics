@@ -1,0 +1,22 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref cultureInfo en-US
+ref table fact_game
+ref table dim_date
+ref table dim_white_rating
+ref table dim_black_rating
+ref table dim_time_control
+ref table dim_termination
+ref table dim_rating_difference_bucket
+ref table dim_eco
+ref table dim_opening_variation

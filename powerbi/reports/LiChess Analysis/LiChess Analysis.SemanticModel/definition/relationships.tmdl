@@ -1,0 +1,35 @@
+relationship 90dd487b-97c6-44d8-9fe0-d0e5df3fa9f0
+	fromColumn: fact_game.Date_SK
+	toColumn: dim_date.Date_SK
+
+relationship 63b4a362-b756-45e0-b060-0c096bf72259
+	fromColumn: fact_game.WhiteRating_SK
+	toColumn: dim_white_rating.WhiteRating_SK
+
+relationship ccdbee10-2e37-4541-a9cb-375ca52297e8
+	fromColumn: fact_game.BlackRating_SK
+	toColumn: dim_black_rating.BlackRating_SK
+
+relationship 7ca3cd89-b9c6-4ca8-ade1-40e63bf7b327
+	fromColumn: fact_game.RatingDifferenceBucket_SK
+	toColumn: dim_rating_difference_bucket.RatingDifferenceBucket_SK
+
+relationship 41378fbb-1cf9-46f2-8c94-3e86de784c1a
+	fromColumn: fact_game.TimeControl_SK
+	toColumn: dim_time_control.TimeControl_SK
+
+relationship 971057cf-3d0c-44b5-a218-c95eb5782802
+	fromColumn: fact_game.Termination_SK
+	toColumn: dim_termination.Termination_SK
+
+relationship 2e0eeb93-3ef7-4f6b-82e9-d5a2d95cfcaf
+	fromColumn: fact_game.ECO_SK
+	toColumn: dim_eco.ECO_SK
+
+relationship 77bb69b4-e355-40a5-af30-400837f1dd95
+	fromColumn: fact_game.OpeningVariation_SK
+	toColumn: dim_opening_variation.OpeningVariation_SK
+
+relationship d2417f7a-4d8e-4255-a988-0c0b0bccbb69
+	fromColumn: dim_opening_variation.ECO_SK
+	toColumn: dim_eco.ECO_SK

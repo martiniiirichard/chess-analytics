@@ -44,7 +44,7 @@ Use this backlog when asking "what next?"
 | CHESS-BL-013 | Build Bronze validation checks | Data warehouse | Done | P1 | Row validation plus explicit Parquet schema validation implemented for v1 |
 | CHESS-BL-014 | Define player dimension strategy | Semantic modeling | Proposed | P2 | Needed for player behavior and sandbagging analysis |
 | CHESS-BL-015 | Define player rating event model | Semantic modeling | Proposed | Research | Needed for rating-growth/sandbagging research |
-| CHESS-BL-016 | Define Power BI semantic model plan | Power BI | Proposed | P2 | Measures, relationships, display folders, visual conventions |
+| CHESS-BL-016 | Define Power BI semantic model plan | Power BI | Done | P1 | PBIP semantic model prototype connects to Gold Parquet with starter measures and relationships |
 | CHESS-BL-017 | Define local warehouse physical design | Data warehouse | Done | P1 | Portable Parquet-backed medallion layers locally; DuckDB as query engine |
 | CHESS-BL-018 | Plan Fabric migration path | Fabric | Proposed | P2 | Later move from on-prem/laptop prototype to Fabric |
 | CHESS-BL-019 | Explore Synoptic Panel chess board visual | Power BI | Proposed | P2 | Later visual idea: use Synoptic Panel or a similar custom visual to make board-state analysis distinctive |
@@ -57,6 +57,7 @@ Use this backlog when asking "what next?"
 | CHESS-BL-026 | Rebuild Gold dimensions from all Silver partitions | Data warehouse | Done | P1 | Fixed multi-month FK failures by rebuilding Gold dimensions globally |
 | CHESS-BL-027 | Build monthly processing orchestration | Data warehouse | Done | P1 | Wrapper for download, Bronze, Silver, Gold, DuckDB, and orchestration manifest |
 | CHESS-BL-028 | Run third-month orchestration pilot | Data warehouse | Done | P1 | Orchestration wrapper processed `2013-03`; DuckDB validates `403928` fact rows |
+| CHESS-BL-029 | Validate PBIP refresh in Power BI Desktop | Power BI | Accepted | P1 | Open PBIP, refresh Parquet model, compare row count to Gold/DuckDB, and confirm relationships |
 
 ## Recently Completed
 
@@ -77,6 +78,7 @@ Use this backlog when asking "what next?"
 | CHESS-DONE-013 | Second-month pipeline pilot completed | `2013-02` added; DuckDB validates `245293` fact rows across `2013-01` and `2013-02` |
 | CHESS-DONE-014 | Monthly orchestration implemented | `process_month.py` runs Bronze, Silver, Gold, DuckDB, and writes a month-level manifest |
 | CHESS-DONE-015 | Third-month orchestration pilot completed | `2013-03` added; DuckDB validates `403928` fact rows across three months |
+| CHESS-DONE-016 | PBIP semantic model prototype added | Thick PBIP copied into repo and wired to Gold Parquet with starter fact/dimension model |
 
 ## Parking Lot
 

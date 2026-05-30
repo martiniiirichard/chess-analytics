@@ -1,0 +1,48 @@
+table dim_black_rating
+	lineageTag: a28ba2bf-51d6-4680-a507-7a2b91efc545
+
+	column BlackRating_SK
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: BlackRating_SK
+
+		annotation SummarizationSetBy = Automatic
+
+	column RatingBand
+		dataType: string
+		summarizeBy: none
+		sourceColumn: RatingBand
+
+		annotation SummarizationSetBy = Automatic
+
+	column RatingBandMin
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: RatingBandMin
+
+		annotation SummarizationSetBy = Automatic
+
+	column RatingBandMax
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: RatingBandMax
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsUnknown
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: IsUnknown
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_black_rating = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents("C:\\Users\\marti\\OneDrive\\Documents\\New project\\chess-analytics\\data\\gold\\dimensions\\dim_black_rating.parquet"))
+				in
+				    Source
+
+	annotation PBI_ResultType = Table

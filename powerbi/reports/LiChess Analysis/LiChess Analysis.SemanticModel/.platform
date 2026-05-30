@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "LiChess Analysis"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "5e74feb1-e812-4d18-9552-10787f0a881b"
+  }
+}

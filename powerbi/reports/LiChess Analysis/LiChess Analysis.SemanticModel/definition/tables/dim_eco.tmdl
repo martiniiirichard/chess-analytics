@@ -1,0 +1,41 @@
+table dim_eco
+	lineageTag: f2da7e88-e855-48e2-ad90-b2b05ba1f2a0
+
+	column ECO_SK
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: ECO_SK
+
+		annotation SummarizationSetBy = Automatic
+
+	column ECOCode
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ECOCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column ECOCategory
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ECOCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	column ECOCategoryName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ECOCategoryName
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_eco = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents("C:\\Users\\marti\\OneDrive\\Documents\\New project\\chess-analytics\\data\\gold\\dimensions\\dim_eco.parquet"))
+				in
+				    Source
+
+	annotation PBI_ResultType = Table

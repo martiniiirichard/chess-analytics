@@ -1,0 +1,35 @@
+table dim_opening_variation
+	lineageTag: 0a8a4408-ce5b-471d-b7ea-003243be34f2
+
+	column OpeningVariation_SK
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: OpeningVariation_SK
+
+		annotation SummarizationSetBy = Automatic
+
+	column OpeningName
+		dataType: string
+		summarizeBy: none
+		sourceColumn: OpeningName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ECO_SK
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: ECO_SK
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_opening_variation = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents("C:\\Users\\marti\\OneDrive\\Documents\\New project\\chess-analytics\\data\\gold\\dimensions\\dim_opening_variation.parquet"))
+				in
+				    Source
+
+	annotation PBI_ResultType = Table

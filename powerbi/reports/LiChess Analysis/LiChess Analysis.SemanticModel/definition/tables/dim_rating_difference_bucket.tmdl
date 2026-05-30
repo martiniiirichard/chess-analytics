@@ -1,0 +1,48 @@
+table dim_rating_difference_bucket
+	lineageTag: b30125bb-5e56-4fa6-ab65-bba4250749e3
+
+	column RatingDifferenceBucket_SK
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: RatingDifferenceBucket_SK
+
+		annotation SummarizationSetBy = Automatic
+
+	column RatingDifferenceBucketLabel
+		dataType: string
+		summarizeBy: none
+		sourceColumn: RatingDifferenceBucketLabel
+
+		annotation SummarizationSetBy = Automatic
+
+	column MinDifference
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: MinDifference
+
+		annotation SummarizationSetBy = Automatic
+
+	column MaxDifference
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: MaxDifference
+
+		annotation SummarizationSetBy = Automatic
+
+	column SortOrder
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: SortOrder
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_rating_difference_bucket = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents("C:\\Users\\marti\\OneDrive\\Documents\\New project\\chess-analytics\\data\\gold\\dimensions\\dim_rating_difference_bucket.parquet"))
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
